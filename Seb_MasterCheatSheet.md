@@ -105,6 +105,9 @@ Seb's Master Cheat Sheet
     - [Violin Plot](#violin-plot)
     - [Others](#others)
   - [Seaborn](#seaborn)
+    - [Required Librairies](#required-librairies)
+    - [Regression Plot](#regression-plot)
+    - [Box Plot](#box-plot-1)
   - [Scipy](#scipy)
   - [BeautifulSoup](#beautifulsoup)
     - [Import required librairies](#import-required-librairies-3)
@@ -2065,6 +2068,20 @@ my_df.plot.bar(stacked=True)
 
 ```
 ## Seaborn
+### Required Librairies
+
+### Regression Plot
+```python
+f, ax = plt.subplots(figsize=(9, 6))
+# seaborn's regression plot
+sns.regplot(x=(df['Column1']), y=df['Column2'], data=df, order=1)
+```
+### Box Plot
+```python
+fig = sns.boxplot(x=(df['Column1']), y=('Column2'), data=df)
+fig.axis(ymin=0, ymax=800000)
+```
+
 ## Scipy
 ## BeautifulSoup
 ### Import required librairies
