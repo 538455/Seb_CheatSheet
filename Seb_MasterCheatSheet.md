@@ -3299,7 +3299,6 @@ plot_clusters(X,y_db)
 ## Generative Networks
 
 ## Dimension Reduction
-
 # Modeling Techniques - Supervised Learning
 ## Classification
 
