@@ -182,6 +182,20 @@ Seb's Master Cheat Sheet
 - [Model Optimization](#model-optimization)
   - [Gradient Descent](#gradient-descent)
   - [Stochastic Gradient Descent](#stochastic-gradient-descent)
+- [Model Evaluation](#model-evaluation)
+  - [Regression Metrics](#regression-metrics)
+    - [Mean Squared Error (MSE)](#mean-squared-error-mse)
+    - [Root-Mean-Squared-Error (RMSE)](#root-mean-squared-error-rmse)
+    - [Mean-Absolute-Error (MAE)](#mean-absolute-error-mae)
+    - [R² or Coefficient of Determination](#r-or-coefficient-of-determination)
+    - [Adjusted R²](#adjusted-r)
+  - [Classification Metrics](#classification-metrics)
+    - [Accuracy](#accuracy)
+    - [Precision/Recall](#precisionrecall)
+    - [F1-score](#f1-score)
+    - [ROC curve/AUC score](#roc-curveauc-score)
+    - [Lift Curves](#lift-curves)
+    - [Log-Loss](#log-loss)
 - [Machine Learning - Reinforcement Learning](#machine-learning---reinforcement-learning)
 - [Machine Learning - Semi-Supervised Learning](#machine-learning---semi-supervised-learning)
 - [VSCode](#vscode)
@@ -3635,6 +3649,211 @@ plt.show()
 ## Gradient Descent
 
 ## Stochastic Gradient Descent
+
+# Model Evaluation
+
+## Regression Metrics
+
+### Mean Squared Error (MSE)
+```python
+# import numpy
+import numpy as np
+
+# generate 'ground truth'
+y_true = np.random.normal(0,1,10)
+
+# generate random errors
+errors = np.random.normal(0,0.02,10)
+
+# simulate predictions
+y_pred = y_true + errors
+
+# import MSE from sklearn
+from sklearn.metrics import mean_squared_error
+
+# compute MSE
+MSE = mean_squared_error(y_true,y_pred)  
+
+# print MSE
+print(MSE)
+```
+MSE or Mean Squared Error is one of the most preferred metrics for regression tasks. It is simply the average of the squared difference between the target value and the value predicted by the regression model. As it squares the differences, it penalizes even a small error which leads to over-estimation of how bad the model is. It is preferred more than other metrics because it is differentiable and hence can be optimized better.
+
+
+### Root-Mean-Squared-Error (RMSE)
+```python
+# import numpy
+import numpy as np
+
+# generate 'ground truth'
+y_true = np.random.normal(0,1,10)
+
+# generate random errors
+errors = np.random.normal(0,0.02,10)
+
+# simulate predictions
+y_pred = y_true + errors
+
+# RMSE by Numpy
+RMSE = np.sqrt(MSE)
+print(RMSE)
+
+# RMSE by sklearn
+RMSE = mean_squared_error(y_true,y_pred,squared=False)
+print(RMSE)
+```
+RMSE is the most widely used metric for regression tasks and is the square root of the averaged squared difference between the target value and the value predicted by the model. It is preferred more in some cases because the errors are first squared before averaging which poses a high penalty on large errors. This implies that RMSE is useful when large errors are undesired.
+
+### Mean-Absolute-Error (MAE)
+MAE is the absolute difference between the target value and the value predicted by the model. The MAE is more robust to outliers and does not penalize the errors as extremely as mse. MAE is a linear score which means all the individual differences are weighted equally. It is not suitable for applications where you want to pay more attention to the outliers.
+
+### R² or Coefficient of Determination
+Coefficient of Determination or R² is another metric used for evaluating the performance of a regression model. The metric helps us to compare our current model with a constant baseline and tells us how much our model is better. The constant baseline is chosen by taking the mean of the data and drawing a line at the mean. R² is a scale-free score that implies it doesn't matter whether the values are too large or too small, the R² will always be less than or equal to 1.
+
+### Adjusted R²
+Adjusted R² depicts the same meaning as R² but is an improvement of it. R² suffers from the problem that the scores improve on increasing terms even though the model is not improving which may misguide the researcher. Adjusted R² is always lower than R² as it adjusts for the increasing predictors and only shows improvement if there is a real improvement.
+
+There is a misconception among people that the R² score ranges from 0 to 1 but actually, it ranges from -∞ to 1. Due to this misconception, they are sometimes scared why the R² is negative which is not a possibility according to them.
+
+## Classification Metrics
+For better visualization of the performance of a model, these four outcomes are plotted on a confusion matrix.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image11-6.png)
+### Accuracy
+```python
+# ground truth
+y_true = [1,1,0,1,0,0,1,0,0,1]
+
+# simulate probabilites of positive class
+y_proba = [0.9,0.7,0.2,0.99,0.7,0.1,0.5,0.2,0.4,0.6]
+
+# set the threshold to predict positive class
+thres = 0.5
+
+# class predictions
+y_pred = [int(value > thres) for value in y_proba]
+
+## Accuracy
+# import accuracy_score from sklearn
+from sklearn.metrics import accuracy_score
+
+# compute accuracy
+accuracy = accuracy_score(y_true,y_pred)
+
+# print accuracy
+print(accuracy)
+```
+Accuracy = Number of correct predictions / Total number of predictions.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image14-2.png)
+### Precision/Recall
+Recall gives the fraction you correctly identified as positive out of all positives.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image15-2.png)
+
+Precision gives the fraction of correctly identified as positive out of all predicted as positives.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image19-2.png)
+
+Precision-Recall Tradeoff   
+In general for most classifiers, there is going to be a trade-off between recall and precision as you vary the probability threshold.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image23.gif)
+
+If you need to compare different models with different precision-recall value, It is often convenient to combine precision and recall into a single metric. Correct!! We need a metric that considers both recall and precision to compute the performance. -> F1-score
+### F1-score
+```python
+# ground truth
+y_true = [1,1,0,1,0,0,1,0,0,1]
+
+# simulate probabilites of positive class
+y_proba = [0.9,0.7,0.2,0.99,0.7,0.1,0.5,0.2,0.4,0.6]
+
+# set the threshold to predict positive class
+thres = 0.5
+
+# class predictions
+y_pred = [int(value > thres) for value in y_proba]
+
+## F1-Score
+# import f1_score from sklearn
+from sklearn.metrics import f1_score
+
+# compute F1-score
+f1_score = f1_score(y_true,y_pred)
+
+# print F1-score
+print(f1_score)
+```
+It is defined as the harmonic mean of the model’s precision and recall.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image24.png)
+
+We use Harmonic mean because it is not sensitive to extremely large values, unlike simple averages. Say, we have a model with a precision of 1, and recall of 0 gives a simple average as 0.5 and an F1 score of 0. If one of the parameters is low, the second one no longer matters in the F1 score. The F1 score favors classifiers that have similar precision and recall. Thus, the F1 score is a better measure to use if you are seeking a balance between Precision and Recall.
+### ROC curve/AUC score
+```python
+# ground truth
+y_true = [1,1,0,1,0,0,1,0,0,1]
+
+# simulate probabilites of positive class
+y_proba = [0.9,0.7,0.2,0.99,0.7,0.1,0.5,0.2,0.4,0.6]
+
+# set the threshold to predict positive class
+thres = 0.5
+
+# class predictions
+y_pred = [int(value > thres) for value in y_proba]
+
+## AUC-score
+# import roc_auc_score from sklearn
+from sklearn.metrics import roc_auc_score
+
+# compute AUC-score
+auc = roc_auc_score(y_true,y_proba)
+
+# print AUC-score
+print(auc)
+```
+The receiver operator characteristic is another common tool used for evaluation. It plots out the sensitivity and specificity for every possible decision rule cutoff between 0 and 1 for a model. For classification problems with probability outputs, a threshold can convert probability outputs to classifications. we get the ability to control the confusion matrix a little bit. So by changing the threshold, some of the numbers can be changed in the confusion matrix. But the most important question here is, how to find the right threshold? Of course, we don’t want to look at the confusion matrix every time the threshold is changed, therefore here comes the use of the ROC curve.
+
+For each possible threshold, the ROC curve plots the False positive rate versus the true positive rate.
+
+False Positive Rate: Fraction of negative instances that are incorrectly classified as positive.
+
+True Positive Rate: Fraction of positive instances that are correctly predicted as positive.
+
+Now, think about having a low threshold. So amongst all the probabilities arranged in ascending order, everything below bad is considered as negative and everything above 0.1 is considered as positive. By choosing this, you’re being very liberal.
+
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image25.png)
+
+But if you set your threshold as high, say 0.9.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image1-11.png)
+
+Below is the ROC curve for the same model at different threshold values.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image2-11.png)
+
+From the above graph, it can be seen that the true positive rate increases at a higher rate but suddenly at a certain threshold, the TPR starts to taper off. For every increase in TPR, we have to pay a cost, the cost of an increase in FPR. At the initial stage, the TPR increase is higher than FPR
+
+So, we can select the threshold for which the TPR is high and FPR is low.
+
+Now, let’s see what different values about TPR and FPR tell us about the model.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image3-9.png)
+
+For different models, we will have a different ROC curve. Now, how to compare different models? From the above plot, it is clear that the curve is in the upper triangle, the good the model is.  One way to compare classifiers is to measure the area under the curve for ROC.
+![IMG](https://cdn.analyticsvidhya.com/wp-content/uploads/2020/10/image4-9.png)
+
+AUC(Model 1) > AUC(Model 2) > AUC(Model 2)
+
+Thus Model 1 is the best of all.
+### Lift Curves
+A lift chart pictures gains from applying a classification model in comparison to not applying it (i.e. using a random classifier) for a given section of data.
+
+4 types of LIFT curves can be considered.
+LIFT with percentage scale
+1. accumulated
+2. non-accumulated
+LIFT with quotient scale
+3. accumulated
+4. non-accumuated
+
+more info:
+https://algolytics.com/tutorial-how-to-establish-quality-and-correctness-of-classification-models-part-5-lift-curve/
+
+### Log-Loss ???
 
 # Machine Learning - Reinforcement Learning
 # Machine Learning - Semi-Supervised Learning
