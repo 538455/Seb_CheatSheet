@@ -137,10 +137,6 @@
     - [Scale single value](#scale-single-value)
   - [Convert categorical feature into multiple dummy variables](#convert-categorical-feature-into-multiple-dummy-variables)
 - [Sampling and dimensionality reduction](#sampling-and-dimensionality-reduction)
-  - [Splitting Data into a 'Training' and a 'Testing' set](#splitting-data-into-a-training-and-a-testing-set)
-    - [Holdout split](#holdout-split)
-    - [K-fold split](#k-fold-split)
-    - [Leave-One-Out split](#leave-one-out-split)
   - [Resampling (Class Imbalance)](#resampling-class-imbalance)
     - [1) Can You Collect More Data?](#1-can-you-collect-more-data)
     - [2) Try Changing Your Performance Metric](#2-try-changing-your-performance-metric)
@@ -150,12 +146,20 @@
     - [6) Try Penalized Models](#6-try-penalized-models)
     - [7) Try a Different Perspective](#7-try-a-different-perspective)
     - [8) Try Getting Creative](#8-try-getting-creative)
-  - [Principal Component Analysis](#principal-component-analysis)
+  - [Dimension Reduction: Principal Component Analysis](#dimension-reduction-principal-component-analysis)
     - [PCA Function](#pca-function)
     - [Basic PCA use:](#basic-pca-use)
     - [Using PCA for 2D Scatter Plot](#using-pca-for-2d-scatter-plot)
     - [Using PCA for 3D Scatter Plot](#using-pca-for-3d-scatter-plot)
   - [Variable Selection](#variable-selection)
+    - [Removing Features With Small Variance](#removing-features-with-small-variance)
+    - [Removing Correlated Features](#removing-correlated-features)
+    - [Forward Regression](#forward-regression)
+  - [OLS Regression Results Function](#ols-regression-results-function)
+  - [Splitting Data into a 'Training' and a 'Testing' set](#splitting-data-into-a-training-and-a-testing-set)
+    - [Holdout split](#holdout-split)
+    - [K-fold split](#k-fold-split)
+    - [Leave-One-Out split](#leave-one-out-split)
 - [Modeling Techniques - Unsupervised Learning](#modeling-techniques---unsupervised-learning)
   - [Clustering](#clustering)
     - [Cluster Functions](#cluster-functions)
@@ -169,7 +173,6 @@
       - [Hierachical Clustering](#hierachical-clustering)
     - [Density Based Clustering (DBSCAN)](#density-based-clustering-dbscan)
   - [Generative Networks](#generative-networks)
-  - [Dimension Reduction](#dimension-reduction)
 - [Modeling Techniques - Supervised Learning](#modeling-techniques---supervised-learning)
   - [Classification](#classification)
     - [Random Forest Classifier](#random-forest-classifier)
@@ -203,8 +206,6 @@
 - [Machine Learning - Semi-Supervised Learning](#machine-learning---semi-supervised-learning)
 - [VSCode](#vscode)
   - [SQLite](#sqlite)
-- [Useful Functions](#useful-functions)
-  - [OLS Regression Results Function](#ols-regression-results-function)
 
 # Skipped
 - Exploratory_Data_Analysis.py
@@ -2713,69 +2714,7 @@ data.drop(['Item_Identifier','Outlet_Identifier','Outlet_Establishment_Year'],ax
 
 ```
 # Sampling and dimensionality reduction
-## Splitting Data into a 'Training' and a 'Testing' set
-### Holdout split
-```python
-# import the **train_test_split** function from sklearn
-from sklearn.model_selection import train_test_split
 
-# Split the data to train set and test set, use a 70:30 ratio or a 80:20 ratio
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42) # 70:30 ratio
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80:20 ratio
-
-# split the data with the parameter shuffle = False
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, shuffle=False)
-
-# print the shape of X_train and X_test
-print(X_train.shape)
-print(X_test.shape)
-```
-### K-fold split
-```python
-# import the KFold function from sklearn
-from sklearn.model_selection import KFold
-
-# instantiate KFold with k=5
-kf = KFold(n_splits=5)
-
-print("Normal:")
-
-# iterate over train_index and test_index in kf.split(X) and print them
-for train_index, test_index in kf.split(X):
-    print('Train Index: ', train_index)
-    print('Test Index: ', test_index, '\n')
-
-### Same as above, but with shuffle = True
-# instantiate KFold with k=5 and shuffle=True
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
-print('\n', "Shuffle:")
-
-# iterate over train_index and test_index in kf.split(X) and print them
-for train_index, test_index in kf.split(X):
-    print('Train Index: ', train_index)
-    print('Test Index: ', test_index, '\n')
-```
-### Leave-One-Out split
-```python
-# Each observation is used as test set separately.
-## Popular method for tiny datasets.
-## It takes a lot of time with bigger datasets and can lead to overfitting on a final model.
-
-# import the LeaveOneOut function from sklearn
-from sklearn.model_selection import LeaveOneOut
-
-# instantiate LeaveOneOut
-loo = LeaveOneOut()
-
-# iterate over train_index and test_index in loo.split(X) and print them
-for train_index, test_index in loo.split(X):
-    print('Train Index: ', train_index)
-    print('Test Index: ', test_index, '\n')
-    
-# Print the number of splits
-print(loo.get_n_splits(X))
-```
 ## Resampling (Class Imbalance)
 https://machinelearningmastery.com/tactics-to-combat-imbalanced-classes-in-your-machine-learning-dataset/
 
@@ -2906,7 +2845,7 @@ These are just a few of some interesting and creative ideas you could try.
 
 For more ideas, check out these comments on the reddit post “Classification when 80% of my training set is of one class“.
 
-## Principal Component Analysis
+## Dimension Reduction: Principal Component Analysis
 ### PCA Function
 The steps of PCA have been consolidated into this function:
 ```python
@@ -3085,12 +3024,16 @@ wine_pca_df
 ## Variable Selection
 More details at this link:
 https://data.compass.lighthouselabs.ca/days/w05e/activities/520
+
+### Removing Features With Small Variance
 ```python
+#### Preparation
 import pandas as pd
 df_numeric = pd.read_csv('df_numeric.csv')
 
 y = df_numeric.SalePrice
 df_numeric.drop("SalePrice",axis=1, inplace=True)
+####-----------
 
 from sklearn.feature_selection import VarianceThreshold
 
@@ -3102,6 +3045,16 @@ df_transformed = vt.fit_transform(df_numeric)
 selected_columns = df_numeric.columns[vt.get_support()]
 # transforming an array back to a data-frame preserves column labels
 df_transformed = pd.DataFrame(df_transformed, columns = selected_columns)
+```
+### Removing Correlated Features
+```python
+#### Preparation
+import pandas as pd
+df_numeric = pd.read_csv('df_numeric.csv')
+
+y = df_numeric.SalePrice
+df_numeric.drop("SalePrice",axis=1, inplace=True)
+####-----------
 
 import numpy as np
 
@@ -3122,6 +3075,16 @@ for idx in indices: #each pair
         pass
 
 #print(indices)
+```
+### Forward Regression
+```python
+#### Preparation
+import pandas as pd
+df_numeric = pd.read_csv('df_numeric.csv')
+
+y = df_numeric.SalePrice
+df_numeric.drop("SalePrice",axis=1, inplace=True)
+####-----------
 
 from sklearn.feature_selection import f_regression, SelectKBest
 skb = SelectKBest(f_regression, k=10)
@@ -3134,6 +3097,98 @@ df_transformed.columns[skb.get_support()]
 X = pd.DataFrame(X,columns=df_transformed.columns[skb.get_support()])
 X
 
+```
+## OLS Regression Results Function
+```python
+def getOLS(x,y,Option = 0):
+    """
+    This function will provide you with OLS Regression Results for your dataset.
+
+    Recommended nomenclature for x:
+    df.drop(['y_column'], axis = 1) 
+    
+    Start with your entire DF minus your y value. 
+    You can then easily add values here as you drop them.
+
+    Recommended nomenclature for y:
+    df['y_column']
+
+    By default, the function will print the model, but if you want to do anything further, modify accordingly using Option for different scenarios.
+    """
+    import pandas as pd
+    import statsmodels.api as sm
+    
+    x = sm.add_constant(x)
+    model = sm.OLS(y, x).fit()
+    predictions = model.predict(x)
+    print_model = model.summary()
+
+    if Option == 0:
+        print(print_model)
+```
+
+## Splitting Data into a 'Training' and a 'Testing' set
+### Holdout split
+```python
+# import the **train_test_split** function from sklearn
+from sklearn.model_selection import train_test_split
+
+# Split the data to train set and test set, use a 70:30 ratio or a 80:20 ratio
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42) # 70:30 ratio
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80:20 ratio
+
+# split the data with the parameter shuffle = False
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, shuffle=False)
+
+# print the shape of X_train and X_test
+print(X_train.shape)
+print(X_test.shape)
+```
+### K-fold split
+```python
+# import the KFold function from sklearn
+from sklearn.model_selection import KFold
+
+# instantiate KFold with k=5
+kf = KFold(n_splits=5)
+
+print("Normal:")
+
+# iterate over train_index and test_index in kf.split(X) and print them
+for train_index, test_index in kf.split(X):
+    print('Train Index: ', train_index)
+    print('Test Index: ', test_index, '\n')
+
+### Same as above, but with shuffle = True
+# instantiate KFold with k=5 and shuffle=True
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+print('\n', "Shuffle:")
+
+# iterate over train_index and test_index in kf.split(X) and print them
+for train_index, test_index in kf.split(X):
+    print('Train Index: ', train_index)
+    print('Test Index: ', test_index, '\n')
+```
+### Leave-One-Out split
+```python
+# Each observation is used as test set separately.
+## Popular method for tiny datasets.
+## It takes a lot of time with bigger datasets and can lead to overfitting on a final model.
+
+# import the LeaveOneOut function from sklearn
+from sklearn.model_selection import LeaveOneOut
+
+# instantiate LeaveOneOut
+loo = LeaveOneOut()
+
+# iterate over train_index and test_index in loo.split(X) and print them
+for train_index, test_index in loo.split(X):
+    print('Train Index: ', train_index)
+    print('Test Index: ', test_index, '\n')
+    
+# Print the number of splits
+print(loo.get_n_splits(X))
 ```
 
 # Modeling Techniques - Unsupervised Learning
@@ -3448,7 +3503,6 @@ plot_clusters(X,y_db)
 ```
 ## Generative Networks
 
-## Dimension Reduction
 # Modeling Techniques - Supervised Learning
 ## Classification
 
@@ -4071,39 +4125,6 @@ print("Log-loss for linear regression is better: ", log_loss_lr < log_loss_rr)
 # Machine Learning - Semi-Supervised Learning
 # VSCode
 ## SQLite
-# Useful Functions
-
-
-## OLS Regression Results Function
-```python
-def getOLS(x,y,Option = 0):
-    """
-    This function will provide you with OLS Regression Results for your dataset.
-
-    Recommended nomenclature for x:
-    df.drop(['y_column'], axis = 1) 
-    
-    Start with your entire DF minus your y value. 
-    You can then easily add values here as you drop them.
-
-    Recommended nomenclature for y:
-    df['y_column']
-
-    By default, the function will print the model, but if you want to do anything further, modify accordingly using Option for different scenarios.
-    """
-    import pandas as pd
-    import statsmodels.api as sm
-    
-    x = sm.add_constant(x)
-    model = sm.OLS(y, x).fit()
-    predictions = model.predict(x)
-    print_model = model.summary()
-
-    if Option == 0:
-        print(print_model)
-```
-
-
 
 
 
