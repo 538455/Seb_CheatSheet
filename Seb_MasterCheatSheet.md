@@ -17,7 +17,7 @@ Seb's Master Cheat Sheet
     - [Add the README.md file to the repository](#add-the-readmemd-file-to-the-repository)
     - [Commit the README.md file to the repository](#commit-the-readmemd-file-to-the-repository)
     - [Create a new Github page on your profile](#create-a-new-github-page-on-your-profile)
-    - [Add the URL of the new repo as a remote on your local repo (replace <URL> with the URL of your repo):](#add-the-url-of-the-new-repo-as-a-remote-on-your-local-repo-replace-url-with-the-url-of-your-repo)
+    - [Add the URL of the new repo as a remote on your local repo (replace  with the URL of your repo):](#add-the-url-of-the-new-repo-as-a-remote-on-your-local-repo-replace--with-the-url-of-your-repo)
     - [Push the local repo to the remote repo:](#push-the-local-repo-to-the-remote-repo)
   - [Manage API keys](#manage-api-keys)
     - [Set API Key (Terminal in Jupyter Lab.)](#set-api-key-terminal-in-jupyter-lab)
@@ -28,7 +28,7 @@ Seb's Master Cheat Sheet
 - [PostgresDB](#postgresdb)
 - [Python](#python)
   - [Strings](#strings)
-  - [Integers & Floats](#integers--floats)
+  - [Integers \& Floats](#integers--floats)
     - [Common operations](#common-operations)
   - [Date Objects](#date-objects)
     - [Import required librairies](#import-required-librairies)
@@ -57,9 +57,9 @@ Seb's Master Cheat Sheet
     - [Operation on columns/rows](#operation-on-columnsrows)
     - [Sorting](#sorting)
     - [Filtering](#filtering)
-    - [Dropping values & Dealing with Nulls](#dropping-values--dealing-with-nulls)
+    - [Dropping values \& Dealing with Nulls](#dropping-values--dealing-with-nulls)
     - [Loops](#loops)
-    - [Pandas & SQL](#pandas--sql)
+    - [Pandas \& SQL](#pandas--sql)
     - [Converting to/from a Dataframe](#converting-tofrom-a-dataframe)
   - [CSV](#csv)
     - [Opening/Reading a CSV](#openingreading-a-csv)
@@ -3299,7 +3299,7 @@ plot_clusters(X,y_db)
 ## Generative Networks
 
 ## Dimension Reduction
-TODO
+
 # Modeling Techniques - Supervised Learning
 ## Classification
 
