@@ -104,6 +104,8 @@ Seb's Master Cheat Sheet
     - [Heatmap](#heatmap)
     - [Violin Plot](#violin-plot)
     - [Others](#others)
+  - [Plotly](#plotly)
+    - [Radar Plot](#radar-plot)
   - [Seaborn](#seaborn)
     - [Required Librairies](#required-librairies)
     - [Regression Plot](#regression-plot)
@@ -115,20 +117,68 @@ Seb's Master Cheat Sheet
   - [Making an API Request](#making-an-api-request)
     - [Function](#function)
     - [Get the Status code](#get-the-status-code)
-  - [Data Cleaning](#data-cleaning)
+- [Data Preparation](#data-preparation)
+  - [Orientation](#orientation)
     - [Import Dataset](#import-dataset)
+  - [Data Cleaning](#data-cleaning)
+    - [Data Cleaning Function](#data-cleaning-function)
     - [Clean - Formatting Issues](#clean---formatting-issues)
     - [Clean - Outliers](#clean---outliers)
     - [Clean - Missing Values](#clean---missing-values)
     - [Clean - Duplicate Values](#clean---duplicate-values)
     - [Export to CSV](#export-to-csv)
-  - [Data Preparation - Variable Transformation](#data-preparation---variable-transformation)
-    - [Log Transformation](#log-transformation)
-    - [Binning](#binning)
-    - [Scaling](#scaling)
-    - [Convert categorical feature into multiple dummy variables](#convert-categorical-feature-into-multiple-dummy-variables)
+- [Feature Engineering (Variable Transformation)](#feature-engineering-variable-transformation)
+  - [Log Transformation](#log-transformation)
+  - [Binning](#binning)
+  - [Scaling](#scaling)
+    - [Scale entire DF](#scale-entire-df)
+    - [Scale single value](#scale-single-value)
+  - [Convert categorical feature into multiple dummy variables](#convert-categorical-feature-into-multiple-dummy-variables)
+  - [Splitting Data into a 'Training' and a 'Testing' set](#splitting-data-into-a-training-and-a-testing-set)
+    - [Holdout split](#holdout-split)
+    - [K-fold split](#k-fold-split)
+    - [Leave-One-Out split](#leave-one-out-split)
+- [Sampling and dimensionality reduction](#sampling-and-dimensionality-reduction)
+  - [Resampling (Class Imbalance)](#resampling-class-imbalance)
+  - [Principal Component Analysis](#principal-component-analysis)
+    - [PCA Function](#pca-function)
+    - [Basic PCA use:](#basic-pca-use)
+    - [Using PCA for 2D Scatter Plot](#using-pca-for-2d-scatter-plot)
+    - [Using PCA for 3D Scatter Plot](#using-pca-for-3d-scatter-plot)
+  - [Variable Selection](#variable-selection)
+- [Modeling Techniques - Unsupervised Learning](#modeling-techniques---unsupervised-learning)
+  - [Clustering](#clustering)
+    - [Set Librairies and values](#set-librairies-and-values)
+    - [Plot Custer Function](#plot-custer-function)
+    - [K-Means Clustering (Distance-based, good for blobs)](#k-means-clustering-distance-based-good-for-blobs)
+      - [Elbow Method (Determine # of clusters for K-Means)](#elbow-method-determine--of-clusters-for-k-means)
+      - [K-Means Clustering](#k-means-clustering)
+    - [Hierarchical Clustering](#hierarchical-clustering)
+      - [Dendogram (Determine # Clusters for Hierarchical Clustering)](#dendogram-determine--clusters-for-hierarchical-clustering)
+      - [Hierachical Clustering](#hierachical-clustering)
+    - [Density Based Clustering (DBSCAN)](#density-based-clustering-dbscan)
+  - [Generative Networks](#generative-networks)
+  - [Dimension Reduction](#dimension-reduction)
+- [Modeling Techniques - Supervised Learning](#modeling-techniques---supervised-learning)
+  - [Classification](#classification)
+    - [Random Forest Classifier](#random-forest-classifier)
+  - [Regression](#regression)
+    - [(Simple and Multiple) Linear Regression Model using Statsmodels](#simple-and-multiple-linear-regression-model-using-statsmodels)
+    - [(Simple and Multiple) Linear Regression using sklearn](#simple-and-multiple-linear-regression-using-sklearn)
+    - [Interpreting the Regression Results](#interpreting-the-regression-results)
+    - [Polynomial Regression](#polynomial-regression)
+      - [Multiple features (Set to 1 for single feature)](#multiple-features-set-to-1-for-single-feature)
+      - [Single Feature](#single-feature)
+- [Model Optimization](#model-optimization)
+  - [Gradient Descent](#gradient-descent)
+  - [Stochastic Gradient Descent](#stochastic-gradient-descent)
+- [Machine Learning - Reinforcement Learning](#machine-learning---reinforcement-learning)
+- [Machine Learning - Semi-Supervised Learning](#machine-learning---semi-supervised-learning)
 - [VSCode](#vscode)
   - [SQLite](#sqlite)
+- [Useful Functions](#useful-functions)
+  - [OLS Regression Results Function](#ols-regression-results-function)
+  - [Cluster Functions](#cluster-functions)
 
 # Skipped
 - Exploratory_Data_Analysis.py
@@ -242,6 +292,10 @@ api_key = os.environ["XXX_API_KEY"]
 # PostgresDB
 
 # Python
+```python
+#Determine what type of object A is
+type(A)
+```
 ## Strings
 ```python
 string.upper() #convert the string to uppercase
@@ -594,6 +648,12 @@ tuple3 = tuple1 + tuple2 #Joins tuple1 and tuple2 into tuple3
 #Copy a tuple
 thistuple = ("apple", "banana", "cherry")
 mytuple = thistuple #Copies the tuple to a new tuple
+
+#Convert a 3 dimension tuple into a numpy array
+import numpy as np
+thistuple = ((1,2,3),(4,5,6),(7,8,9))
+myarray = np.asarray(thistuple)
+
 ```
 ## Dictionaries
 ### Build
@@ -967,6 +1027,13 @@ df.at[0, 'float64']=-1 #Sets the value at row 0, column 'float64' of the DataFra
 df.loc[0, 'float64']=-1 #Sets the value at row 0, column 'float64' of the DataFrame df to -1
 df.loc[:, 'float64']= np.array([5] * len(df)) #Sets the values in column 'float64' of the DataFrame df to the values in the array [5, 5, 5, 5, 5, 5]
 
+# Replace all values X from Column A with value Y
+df.loc[df['A'] == X, 'A'] = Y
+
+#Replace all values from Column A with value X where Column B == Y
+df.loc[df['B'] == Y, 'A'] = X
+
+
 ```
 ### Operation on columns/rows
 ```python
@@ -1022,6 +1089,11 @@ df2 = df[df['column_name'] == some_value] #assign to a new dataframe
 # Return a count of unique values in column 'A' over 50 using size
 df[df['A'] > 50].groupby('A').size()
 df.groupby('A').size()
+
+# Return the unique combinations of Column A and Column B, including null combination
+df.groupby(['A', 'B']).size()
+df.groupby(['A', 'B'])
+df.groupby(['A', 'B']).size().reset_index().sort_values(by='A') # sort by column A
 
 #Return the number of rows where column A is over 50
 df[df['A'] > 50].shape[0]
@@ -1638,6 +1710,10 @@ A.shape
 ```python
 # Convert a list into numpy array
 an_array = np.array(a_list)
+
+#Convert tuple into numpy array of the appropriate shape
+an_array = np.array(a_tuple)
+
 ```
 ### Transpose
 ```python
@@ -2067,6 +2143,62 @@ my_df.iloc[5, :] = 'foo'
 my_df.plot.bar(stacked=True)
 
 ```
+## Plotly
+### Radar Plot
+```python
+# Age and Income Clusters
+import pandas as pd
+import plotly.graph_objects as go
+
+
+#Set categories to the columns of the dataframe
+categories=list(scaled_X)
+
+fig = go.Figure()
+
+# Add clusters as traces
+fig.add_trace(go.Scatterpolar(
+        r=AI_cl0.tolist(),
+        theta=categories,
+        fill='toself',
+        name='Cluster 0'
+))
+fig.add_trace(go.Scatterpolar(
+        r=AI_cl1.tolist(),
+        theta=categories,
+        fill='toself',
+        name='Cluster 1'
+))
+fig.add_trace(go.Scatterpolar(
+        r=AI_cl2.tolist(),
+        theta=categories,
+        fill='toself',
+        name='Cluster 2'
+))
+fig.add_trace(go.Scatterpolar(
+        r=AI_cl3.tolist(),
+        theta=categories,
+        fill='toself',
+        name='Cluster 3'
+))
+fig.update_layout(
+  polar=dict(
+    radialaxis=dict(
+      visible=True,
+      range=[0, 10]
+    )),
+  showlegend=True
+)
+# Make the plot larger
+fig.update_layout(
+    autosize=False,
+    width=900,
+    height=900,
+)
+
+fig.show()
+```
+
 ## Seaborn
 ### Required Librairies
 
@@ -2166,7 +2298,8 @@ for url in ['https://api.github.com', 'https://api.github.com/invalid']:
     else:
         print('Success!')
 ```
-## Data Cleaning
+# Data Preparation
+## Orientation
 ### Import Dataset
 ```python
 df = pd.read_csv('name.csv')
@@ -2174,14 +2307,224 @@ df = pd.read_csv('name.csv')
 print(df.shape)
 print(df.head)
 ```
+## Data Cleaning
+### Data Cleaning Function
+```python
+def dataCleaning(df, code=True, tips=False, orientation=True, formatIssues=True, missingValues=True, duplicateValues=True, outliers=True):
+    """
+    ------------------
+    Consolidation of the usual data cleaning steps for a df, November 2022
+    Made by Sebastien Garneau, sebastien.garneau@gmail.com
+    ------------------
+    df: your dataframe
+
+    code: A text template to note your observations as you go. Use the code snippets included in the output. copy-paste into vscode/notepad
+
+    tips: Provides snippets of code to help you clean potential issues in your df. If you prefer this to code
+    
+    orientation: Provides information about the shape/objects of your data
+    
+    formatIssues: Provides detailed information on each column to help identify format issues
+    
+    missingValues: Provides information on missing values
+    
+    duplicateValues: Provides information on duplicate values
+    
+    outliers: Provides information on outliers
+    """
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    if code==True:
+        print("### CLEANING CODE:")
+        print("df = dfX #Change to your df's name")
+        print()
+        print("#### Change column value:")
+        print()
+        print()
+        print("#### Drop entire column:")
+        print()
+        print()
+        print("#### Change column type:")
+        print()
+        print()
+        print("#### Change column name:")
+        print()
+        print()
+        print("#### Handle missing values:")
+        print()
+        print()
+        print("#### Handle duplicate values:")
+        print("# df.drop_duplicates(inplace=True) # drop ALL duplicate rows")
+        print()
+        print("#### Drop outliers:")
+        print()
+        print()
+        print("#### Other observations / further investigations:")
+        print("#")
+        print("#")
+        print("#")
+        print()
+        print("df.head() #Final Review")
+        print("# dfX = df #Change to your df's name")
+        print()
+        print("=========================================")
+    
+    if orientation==True:
+        print("ORIENTATION")
+        print(df.info())
+        print("=========================================")
+        print()
+        
+    
+    if formatIssues==True:
+        print("FORMAT ISSUES")
+        print()
+        for col in df.columns:
+            if df[col].dtype == 'object' or df[col].dtype == 'int64' or df[col].dtype == 'datetime64':
+                print("df['" + col + "'] = df['" + col + "'].replace('old_value', 'new_value')")
+                print("df['" + col + "'] = df['" + col + "'].astype('new_type') # new_type can be int64, float64, object, category, datetime64")
+                print("df.drop('" + col + "', axis=1, inplace=True)")                
+                pd.set_option('display.max_rows', None)
+                print(df.groupby(col, sort=True).size())
+                pd.reset_option('display.max_rows')
+                #display the dtypes of the column
+                print("Current Column DType: ", df[col].dtype, "     Do not compare with above. This one will always return int64 as it's the dtype of the count")                
+                print("df['" + col + "'] = df['" + col + "'].astype('new_type') # new_type can be int64, float64, object, category, datetime64")
+                print()
+            #else:
+            #    print(col)
+            #    print(df[col].describe())
+            #    print()
+
+        if tips==True:
+            print("TIPS")
+            print("To make a correction to a column, use the following syntax:")
+            print("df['A'] = df['A'].apply(lambda x: x.replace('old_value', 'new_value'))")
+            print()
+            print("To change a column data type, use the following syntax:")
+            print("df['A'] = pd.to_datetime(df['A']) # for datetime")
+            print("df['A'] = df['A'].astype('int64') # for integers")
+            print("df['A'] = df['A'].astype('float64') # for floats")
+            print("df['A'] = df['A'].astype('category') # for categorical")
+            print("df['A'] = df['A'].astype('object') # for object")
+            print()
+        print("=========================================")
+        print()
+
+    if missingValues==True:
+        print("MISSING VALUES")
+        print()
+        for col in df.columns:
+            if df[col].isnull().sum() > 0:
+                print(col, ":", df[col].isnull().sum(), " missing values")
+                print("df.dropna(subset=['" + col + "'], inplace=True)")
+                print("df['" + col + "'].fillna(df['" + col + "'].mean(), inplace=True) #fill NA entries with the mean")
+                print("df['" + col + "'].fillna(0, inplace=True) # fill NA entries with a single value, such as zero")
+                print()
+                print(df.loc[df[col].isnull()].head())
+                print()
+            else:
+                print(col, ": No missing values")
+                print()
+                                    
+        if tips==True:
+            print()
+            print("TIPS")
+            print("You can drop rows with missing values using one of the following code:")
+            print("df.dropna(subset=['col'], inplace=True) #For a single column")
+            print("df.dropna(inplace=True) #For all columns")
+            print()
+            print("You can fill rows with missing values using one of the following code:")
+            print("df['col'].fillna(df['col'].mean(), inplace=True) #fill NA entries with the mean")
+            print("df['col'].fillna(0, inplace=True) # fill NA entries with a single value, such as zero")
+            print("df['col'].fillna(method='ffill') # forward-fill to propagate the previous value forward")
+            print("df['col'].fillna(method='bfill' # back-fill to propagate the next values backward)")
+            print()
+            print("To view them:")
+            print("df.loc[df[col].isnull()].head()")
+            print()
+        print("=========================================")
+        print()
+
+    if duplicateValues==True:
+        print("DUPLICATE VALUES")
+        print()
+        print(df[df.duplicated()].head())
+        print()
+
+        if tips==True:
+            print("TIPS")
+            print("You can drop duplicate rows using the following code:")
+            print("df.drop_duplicates(inplace=True)")
+            print("df.drop_duplicates(subset=['col'], inplace=True) #For a single column")
+            print()
+            print("To view them:")
+            print("df[df.duplicated()].head()")
+            print()
+    
+        print("=========================================")
+        print()
+
+    if outliers==True:
+        print("OUTLIERS")
+        print()
+        for col in df.columns:
+            if df[col].dtype == 'int64' or df[col].dtype == 'float64':
+                print(col)
+                print("-----")
+                print("Outlier(s):")
+                print("Below ", df[col].mean() - 3*df[col].std(), " -> ", df[df[col] < df[col].mean() - 3*df[col].std()].shape[0], " low outlier(s)")
+                print("Above ", df[col].mean() + 3*df[col].std(), " -> ", df[df[col] > df[col].mean() + 3*df[col].std()].shape[0], " high outlier(s)")
+                low = df[col].mean() - 3*df[col].std()
+                high = df[col].mean() + 3*df[col].std()
+                print("df = df[(df['" + col + "'] > " + str(low) + ") & (df['" + col + "'] < " + str(high) + ")]")
+                print()
+                print(df[col].describe())
+                print()
+                print("Boxplot")
+                sns.boxplot(df[col])
+                plt.show()
+                print()
+                print("Histogram")
+                sns.histplot(df[col])
+                plt.show()
+                print("=========================================")
+                print()
+
+        if tips==True:
+            print("TIPS")
+            print("You can drop outliers using the following code:")
+            print("df = df[(df['column'] > lower_bound) & (df['column'] < upper_bound)]")
+            print()
+```
 ### Clean - Formatting Issues
 ```python
-df['column'].unique()
+# Display the values of each columns to look for formatting issues
+for col in df.columns:
+    if df[col].dtype == 'object' or df[col].dtype == 'int64' or df3[col].dtype == 'datetime64':
+        print(col)
+        print(df[col].unique())
+        print()
+    else:
+        print(col)
+        print(df[col].describe())
+        print()
 
-sns.histplot(df['column'])
-
-#Dropping all redundant/useless columns
-df.drop(['UOM', 'UOM_ID', 'SCALAR_FACTOR', 'SCALAR_ID', 'STATUS', 'SYMBOL', 'TERMINATED', 'DECIMALS'], axis=1, inplace=True)
+```
+Further Investigate
+```python
+#df['column'].unique()
+#display unique values for column A in alphabetical order
+#df['column'].unique().tolist()
+#df['column'].describe()
+#sns.histplot(df['column'])
+```
+Dropping all redundant/useless columns
+```python
+df.drop(['A', 'B'], axis=1, inplace=True)
 ```
 ### Clean - Outliers
 ```python
@@ -2211,7 +2554,8 @@ stats.zscore(df['Column'])
 #np.abs(stats.zscore(df['Column']))
 
 #view the outliers
-df['Column'][(np.abs(stats.zscore(df['Column'])) > 3)]    #Z-scores above 3 indicate the value is greater than 3 standard deviations from the mean. Data Scientists often label values with a z-score above 3 as outliers.
+df['Column'][(np.abs(stats.zscore(df['Column'])) > 3)]    # .describe() add if you want to see the details of the outliers
+##Z-scores above 3 indicate the value is greater than 3 standard deviations from the mean. Data Scientists often label values with a z-score above 3 as outliers.
 
 #Dealing with Outliers
 ## Can drop the observation (if appropriate)
@@ -2232,7 +2576,6 @@ df[cols_missing_vals] = df[cols_missing_vals].replace(0, np.NaN) # replace 0's w
 df.loc[df['column', 'column2'].isnull()] #to see them
 df.dropna(subset=['column', 'column2'], inplace=True) #to drop them
 
-
 # Replacing Null by the average
 df['column'] = df['column'].fillna(value=df['column'].mean())
 ```
@@ -2246,8 +2589,8 @@ df.drop_duplicates(inplace=True)
 ```python
 df.to_csv('name.csv')
 ```
-## Data Preparation - Variable Transformation
-### Log Transformation
+# Feature Engineering (Variable Transformation)
+## Log Transformation
 ```python
 #plot original distribution of Insulin
 diabetes_df['Insulin'].plot.hist()
@@ -2255,7 +2598,7 @@ diabetes_df['Insulin'].plot.hist()
 #plot distribution of Insulin after log transformation
 np.log(diabetes_df['Insulin']).plot.hist()
 ```
-### Binning
+## Binning
 ```python
 #Binning with q-cut (bin according to quantiles)
 pd.qcut(diabetes_df['Age'], q = 4).value_counts()
@@ -2263,20 +2606,34 @@ pd.qcut(diabetes_df['Age'], q = 4).value_counts()
 #Binning with cut (equally sized bins)
 pd.cut(diabetes_df['Age'], bins = 4).value_counts()
 ```
-### Scaling
+## Scaling
+### Scale entire DF
 ```python
 #summary statistics before scaling
-diabetes_df.describe()
+df.describe()
 
 #use MinMaxScaler to scale data into a given range ((0,1) by default)
 from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler()
-scaled = pd.DataFrame(scaler.fit_transform(diabetes_df))
+scaled = pd.DataFrame(scaler.fit_transform(df))
 
 #summary statistics after scaling
 scaled.describe()
 ```
-### Convert categorical feature into multiple dummy variables
+### Scale single value
+```python
+# Standard Scaler
+from sklearn.preprocessing import scale
+A = scale(A, with_std=True)
+
+# Min/Max Scaler
+from sklearn.preprocessing import MinMaxScaler
+A = MinMaxScaler(A)
+
+# Old fashioned way
+X['age_scaled'] = (X['age'] - X['age'].min()) / (X['age'].max() - X['age'].min()) * 10
+```
+## Convert categorical feature into multiple dummy variables
 ```python
 #Print Pregnancies column
 diabetes_df['Pregnancies']
@@ -2286,9 +2643,886 @@ pd.get_dummies(diabetes_df['Pregnancies'])
 
 #convert Pregnancies column into multiple dummy variables in the same dataframe
 pd.get_dummies(diabetes_df, prefix='preg', columns=['Pregnancies'])
+
+
+
+## Alternate way to do it
+# Since scikit-learn algorithms accept only numerical variables, we need to convert all categorical variables into numeric types.
+# We will use the LabelEncoder class from the scikit-learn library to do this.
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+
+# New variable for outlet
+data['Outlet'] = le.fit_transform(data['Outlet_Identifier'])
+
+# New variable for Item_Fat_Content
+data['Item_Fat_Content'] = le.fit_transform(data['Item_Fat_Content'])
+
+# New variable for Item_Type
+data['Item_Type'] = le.fit_transform(data['Item_Type'])
+
+# New variable for Item_Category
+data['Item_Category'] = le.fit_transform(data['Item_Category'])
+
+# New variable for Outlet_Size
+data['Outlet_Size'] = le.fit_transform(data['Outlet_Size'])
+
+# New variable for Outlet_Location_Type
+data['Outlet_Location_Type'] = le.fit_transform(data['Outlet_Location_Type'])
+
+# New variable for Outlet_Type
+data['Outlet_Type'] = le.fit_transform(data['Outlet_Type'])
+
+# Drop the columns which have been converted to different types
+data.drop(['Item_Identifier','Outlet_Identifier','Outlet_Establishment_Year'],axis=1,inplace=True)
+
 ```
+## Splitting Data into a 'Training' and a 'Testing' set
+### Holdout split
+```python
+# import the **train_test_split** function from sklearn
+from sklearn.model_selection import train_test_split
+
+# Split the data to train set and test set, use a 70:30 ratio or a 80:20 ratio
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42) # 70:30 ratio
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80:20 ratio
+
+# split the data with the parameter shuffle = False
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, shuffle=False)
+
+# print the shape of X_train and X_test
+print(X_train.shape)
+print(X_test.shape)
+```
+### K-fold split
+```python
+# import the KFold function from sklearn
+from sklearn.model_selection import KFold
+
+# instantiate KFold with k=5
+kf = KFold(n_splits=5)
+
+print("Normal:")
+
+# iterate over train_index and test_index in kf.split(X) and print them
+for train_index, test_index in kf.split(X):
+    print('Train Index: ', train_index)
+    print('Test Index: ', test_index, '\n')
+
+### Same as above, but with shuffle = True
+# instantiate KFold with k=5 and shuffle=True
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+print('\n', "Shuffle:")
+
+# iterate over train_index and test_index in kf.split(X) and print them
+for train_index, test_index in kf.split(X):
+    print('Train Index: ', train_index)
+    print('Test Index: ', test_index, '\n')
+```
+### Leave-One-Out split
+```python
+# Each observation is used as test set separately.
+## Popular method for tiny datasets.
+## It takes a lot of time with bigger datasets and can lead to overfitting on a final model.
+
+# import the LeaveOneOut function from sklearn
+from sklearn.model_selection import LeaveOneOut
+
+# instantiate LeaveOneOut
+loo = LeaveOneOut()
+
+# iterate over train_index and test_index in loo.split(X) and print them
+for train_index, test_index in loo.split(X):
+    print('Train Index: ', train_index)
+    print('Test Index: ', test_index, '\n')
+    
+# Print the number of splits
+print(loo.get_n_splits(X))
+```
+# Sampling and dimensionality reduction
+## Resampling (Class Imbalance)
+```python
+
+```
+
+## Principal Component Analysis
+### PCA Function
+The steps of PCA have been consolidated into this function:
+```python
+def runPCA (data, componentsNumber):
+    # Import required librairies
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import scale
+
+    # Set data to A
+    A = data
+
+    # Scale the data
+    A = scale(A, with_std=True)  #Std scaler
+    ## can also use a min/max scaler
+
+    # Run a PCA over the data
+    pca = PCA(n_components=componentsNumber) #change to the number of components you want to keep
+    pca.fit(A)
+    A_pca = pca.transform(A)
+
+    return A_pca
+```
+### Basic PCA use:
+```python
+# Setting our data
+X = df10.drop(['cust_id', 'street_nbr', 'postal_code', 'gender', 'name_prefix', 'first_name', 'last_name', 'street_name', 'city_name', 'state_code', 'cc_creditUsed_perc', 'ck_tran_avg'], axis = 1) 
+
+# Run PCA
+data_pca = runPCA(X, 2)
+
+# That's it
+data_pca.shape
+```
+### Using PCA for 2D Scatter Plot
+```python
+import plotly.express as px
+
+# Setting our data
+X = df10.drop(['cust_id', 'street_nbr', 'postal_code', 'gender', 'name_prefix', 'first_name', 'last_name', 'street_name', 'city_name', 'state_code', 'cc_creditUsed_perc', 'ck_tran_avg'], axis = 1) 
+
+# plot the data_pca and set the color of each cluster based on the 3rd column of the tuple using plotly
+data_pca = runPCA(X, 2) #highly recommended you run you PCA with 2 dimensions
+
+# Add the colour column to data_pca
+data_pca = np.append(data_pca, X['AI_cluster'].values.reshape(-1, 1), axis=1)
+
+# Make the Scatter Plot
+fig = px.scatter(data_pca, x=0, y=1, color=2)
+
+# Force the size of the plot
+fig.update_layout(
+    autosize=False,
+    width=900,
+    height=900,
+)
+
+# Set the title
+fig.update_layout(
+    title={
+        'text': "PCA - Clustered with Age & Income",
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'})
+
+#Show the legend
+fig.update_layout(showlegend=True)
+
+#Set the legend
+fig.update_layout(legend=dict(
+    yanchor="top",
+    y=0.99,
+    xanchor="right",
+    x=0.01
+))
+
+# Set the x and y axis limits
+fig.update_xaxes(range=[-5, 5])
+fig.update_yaxes(range=[-5, 5])
+
+# Label the axes
+fig.update_xaxes(title_text='PC1')
+fig.update_yaxes(title_text='PC2')
+
+#add the loadings to the plot
+fig.add_trace(go.Scatter(x=[0, 1], y=[0, 0], mode='lines', name='PC1', line=dict(color='red', width=2)))
+fig.add_trace(go.Scatter(x=[0, 0], y=[0, 1], mode='lines', name='PC2', line=dict(color='blue', width=2)))
+
+fig.show()
+```
+
+### Using PCA for 3D Scatter Plot
+```python
+X = df10.drop(['cust_id', 'street_nbr', 'postal_code', 'gender', 'name_prefix', 'first_name', 'last_name', 'street_name', 'city_name', 'state_code', 'cc_creditUsed_perc', 'ck_tran_avg'], axis = 1) 
+
+# Run PCA over your data
+data_pca = runPCA(X, 3)
+
+# Add the colour column to data_pca, you can add many, they will be added in order
+data_pca = np.append(data_pca, X['AI_cluster'].values.reshape(-1, 1), axis=1)
+data_pca = np.append(data_pca, X['IS_cluster'].values.reshape(-1, 1), axis=1)
+
+# Make the Scatter Plot
+fig = px.scatter_3d(data_pca, x=0, y=1, z=2, color=3, labels={'0': 'PC 1', '1': 'PC 2', '2': 'PC 3'})
+
+# Set the title
+fig.update_layout(
+    title={
+        'text': "PCA - Clustered with Age & Income",
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'})
+
+#Change the dots' size
+fig.update_traces(marker=dict(size=3))
+
+# Add the loadings
+fig.add_trace(go.Scatter3d(
+    x=[0, 1],
+    y=[0, 0],
+    z=[0, 0],
+    mode='lines',
+    line=dict(color='red', width=2),
+    name='PC 1'
+))
+fig.add_trace(go.Scatter3d(
+    x=[0, 0],
+    y=[0, 1],
+    z=[0, 0],
+    mode='lines',
+    line=dict(color='green', width=2),
+    name='PC 2'
+))
+fig.add_trace(go.Scatter3d(
+    x=[0, 0],
+    y=[0, 0],
+    z=[0, 1],
+    mode='lines',
+    line=dict(color='blue', width=2),
+    name='PC 3'
+))
+
+fig.show()
+```
+
+Some extras (TO DETERMINE IF KEEPING)
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import scale
+
+# Plot a scree plot to determine the number of principal components you want to keep. Use the elbow rule.
+pca = PCA()
+pca.fit(wine_df)
+plt.plot(pca.explained_variance_ratio_)
+plt.show()
+
+# Create a cumulative explained_variance_ratio plot. Determine the number of principal components you want to keep. Use the elbow rule.
+plt.plot(np.cumsum(pca.explained_variance_ratio_))
+plt.show()
+
+# Refit your PCA with the chosen optimal number of principal components and project the principal components to a DataFrame. Also, you should name the columns of the DataFrame appropriately.
+pca = PCA(n_components=3)
+pca.fit(wine_df)
+wine_pca = pca.transform(wine_df)
+wine_pca_df = pd.DataFrame(wine_pca, columns=['PC1', 'PC2', 'PC3'])
+wine_pca_df
+
+# Export the data with the new features to a CSV file. The number of rows should be the same as in the original dataset.
+#wine_pca_df.to_csv('wine_pca.csv', index=False)
+```
+
+## Variable Selection
+More details at this link:
+https://data.compass.lighthouselabs.ca/days/w05e/activities/520
+```python
+import pandas as pd
+df_numeric = pd.read_csv('df_numeric.csv')
+
+y = df_numeric.SalePrice
+df_numeric.drop("SalePrice",axis=1, inplace=True)
+
+from sklearn.feature_selection import VarianceThreshold
+
+vt = VarianceThreshold(0.1)
+df_transformed = vt.fit_transform(df_numeric)
+
+# columns we have selected
+# get_support() is method of VarianceThreshold and stores boolean of each variable in the numpy array.
+selected_columns = df_numeric.columns[vt.get_support()]
+# transforming an array back to a data-frame preserves column labels
+df_transformed = pd.DataFrame(df_transformed, columns = selected_columns)
+
+import numpy as np
+
+# step 1
+df_corr = df_transformed.corr().abs()
+
+# step 2
+indices = np.where(df_corr > 0.8) 
+indices = [(df_corr.index[x], df_corr.columns[y]) 
+for x, y in zip(*indices)
+    if x != y and x < y]
+
+# step 3
+for idx in indices: #each pair
+    try:
+        df_transformed.drop(idx[1], axis = 1, inplace=True)
+    except KeyError:
+        pass
+
+#print(indices)
+
+from sklearn.feature_selection import f_regression, SelectKBest
+skb = SelectKBest(f_regression, k=10)
+X = skb.fit_transform(df_transformed, y)
+
+# this will give us the position of top 10 columns
+skb.get_support()
+# column names
+df_transformed.columns[skb.get_support()]
+X = pd.DataFrame(X,columns=df_transformed.columns[skb.get_support()])
+X
+
+```
+
+# Modeling Techniques - Unsupervised Learning
+## Clustering
+### Set Librairies and values
+```python
+#Required Librairies
+import matplotlib.pyplot as plt
+import numpy as np
+
+from sklearn.cluster import KMeans #For KMeans
+
+from sklearn.cluster import AgglomerativeClustering #hierarchy
+import scipy.cluster.hierarchy as sch #hierarchy
+
+from sklearn.datasets import make_moons #DBSCAN
+from sklearn.cluster import DBSCAN #DBSCAN
+
+# If your data is contained into columns of a df, set it to x and y below
+x = df['column1']
+y = df['column2']
+
+# Merge the two columns into a Numpy Array
+X = np.array(list(zip(x, y)))
+
+
+# You can also use the make blobs function for tests/samples
+# generate clusters 
+#X, y = make_blobs(n_samples=150,
+#                  n_features=2,
+#                  centers=3,
+#                  cluster_std=0.5,
+#                  random_state=0)
+
+
+#plot the data for an overview
+plt.rcParams["figure.figsize"] = (12,8) #set figure size
+plt.scatter(X[:, 0], X[:, 1], c='black', marker='o', edgecolor='black', s=50) #c='black' is the color of the dots, s=50 is the size of the dots, edgecolor='black' is the color of the border of the dots, marker='o' is the shape of the dots
+# Set the labels
+plt.xlabel('x')
+plt.ylabel('y')
+plt.grid()
+plt.show()
+```
+
+### Plot Custer Function
+```python
+# Setting up the function that will plot and display the cluster
+def plot_clusters(X,y_res, plt_cluster_centers = False):
+    X_centroids = []
+    Y_centroids = []
+
+    for cluster in set(y_res):
+        x = X[y_res == cluster,0]
+        y = X[y_res == cluster,1]
+        X_centroids.append(np.mean(x))
+        Y_centroids.append(np.mean(y))
+
+        plt.scatter(x,
+                    y,
+                    s=50,
+                    marker='s',
+                    label=f'cluster {cluster}')
+
+    if plt_cluster_centers:
+        plt.scatter(X_centroids,
+                    Y_centroids,
+                    marker='*',
+                    c='red',
+                    s=250,
+                    label='centroids')
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.grid()
+    plt.show()
+```
+### K-Means Clustering (Distance-based, good for blobs)
+#### Elbow Method (Determine # of clusters for K-Means)
+```python
+# A great tool for deciding how many clusters to choose (and therefore to evaluate our model) is the elbow rule in a distortion plot. 
+
+def plot_distortion(X,max_clusters = 10):
+    distortions = []
+    for i in range(1, max_clusters +1):
+        km = KMeans(n_clusters=i,
+                    init='k-means++',
+                    n_init=10,
+                    random_state=0)
+        km.fit(X)
+        distortions.append(km.inertia_)
+
+    plt.plot(range(1,max_clusters +1), distortions, marker='o')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('Distortion')
+    plt.show()
+
+# Call the elbow function
+plot_distortion(X,max_clusters=10)
+```
+
+#### K-Means Clustering 
+```python
+# Instantiate the KMeans class
+km = KMeans(n_clusters=3, # how many clusters we expect. SEE ELBOW METHOD TO HELP DETERMINE
+            n_init=10, # how many initial runs
+            random_state=0)
+
+
+# fit and predict
+y_km = km.fit_predict(X)
+
+# plot clustering result
+plot_clusters(X, y_km, plt_cluster_centers= True) #If you want the centers plotted
+#plot_clusters(X, y_km) #If you don't want the centers plotted
+```
+### Hierarchical Clustering
+#### Dendogram (Determine # Clusters for Hierarchical Clustering)
+```python
+#To identify the right number of clusters we can plot a dendrogram. Let's define the function that plots a dendrogram:
+
+# define plot_dendrogram function
+def plot_dendrogram(X,method ='ward'):
+    dendrogram = sch.dendrogram(sch.linkage(X, method=method))
+    plt.title("Dendrogram")
+    plt.ylabel("Euclidean distances")
+    plt.xlabel('Points')
+    plt.show()
+
+# Plot dendrogram
+plot_dendrogram(X)
+```
+#### Hierachical Clustering
+```python
+# create an object
+ac = AgglomerativeClustering(affinity='euclidean',
+                             linkage='ward',
+                             n_clusters = 3) #Number of clusters. SEE DENDOGRAM TO HELP DETERMINE
+
+# We set the Euclidean distance to the affinity parameter and set the number of clusters to three. We also set the linkage parameter to the "ward". The linkage criteria determine the metric used for the merge strategy:
+
+## ward minimizes the sum of squared differences within all clusters. It is a variance-minimizing approach and, in this sense, is similar to the k-means objective function but tackled with an agglomerative hierarchical approach.
+
+## maximum or complete linkage minimizes the maximum distance between observations of pairs of clusters.
+
+## average linkage minimizes the average of the distances between all observations of pairs of clusters.
+
+## single linkage minimizes the distance between the closest observations of pairs of clusters.
+
+# fit and predict
+y_hc = ac.fit_predict(X)
+
+# Plot clustering result
+plot_clusters(X,y_hc)
+```
+### Density Based Clustering (DBSCAN)
+```python
+# create an instance of DBSCAN class from the Sklearn library:
+db = DBSCAN(eps=0.5,
+            min_samples=5,
+            metric='euclidean')
+
+# We created the instance of DBSCAN class with a few parameters we didn't use before:
+
+## eps: The maximum distance between two samples for one to be considered as being in the neighborhood of the other. This is not a maximum bound on the distances of points within a cluster. It is the most important DBSCAN parameter to choose appropriately for our dataset and distance function.
+
+## min_samples: The number of samples in a neighborhood for a point to be considered as a core point. This includes the point itself.
+
+# fit and predict
+y_db = db.fit_predict(X)
+
+# Plot DBSCAN clusters
+plot_clusters(X,y_db)
+```
+## Generative Networks
+
+## Dimension Reduction
+# Modeling Techniques - Supervised Learning
+## Classification
+
+### Random Forest Classifier
+```python
+import RandomForestClassifier from sklearn
+
+model = RandomForestClassifier
+
+model.fit(X, Y) # learning
+
+predictions = model.predict(X) # make predictions
+
+model.score(X,Y) #Evaluation of the model
+
+```
+## Regression
+### (Simple and Multiple) Linear Regression Model using Statsmodels
+
+```python
+import pandas as pd
+import statsmodels.api as sm
+
+# data = {'year': [2017,2017,2017,2017,2017,2017,2017,2017,2017,2017,2017,2017,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016],
+#         'month': [12,11,10,9,8,7,6,5,4,3,2,1,12,11,10,9,8,7,6,5,4,3,2,1],
+#         'interest_rate': [2.75,2.5,2.5,2.5,2.5,2.5,2.5,2.25,2.25,2.25,2,2,2,1.75,1.75,1.75,1.75,1.75,1.75,1.75,1.75,1.75,1.75,1.75],
+#         'unemployment_rate': [5.3,5.3,5.3,5.3,5.4,5.6,5.5,5.5,5.5,5.6,5.7,5.9,6,5.9,5.8,6.1,6.2,6.1,6.1,6.1,5.9,6.2,6.2,6.1],
+#         'index_price': [1464,1394,1357,1293,1256,1254,1234,1195,1159,1167,1130,1075,1047,965,943,958,971,949,884,866,876,822,704,719]        
+#         }
+
+# Convert your data in a DF to start
+df = pd.DataFrame(data) 
+
+x = df.drop(['index_price', 'interest_rate','unemployment_rate'], axis = 1) # Start with your entire DF minus your y value. Add values here as you drop.
+y = df['index_price']
+
+x = sm.add_constant(x) # adding a constant
+
+model = sm.OLS(y, x).fit()
+# Above is sometimes done in two steps
+# lin_reg = sm.OLS(y,X)
+# model = lin_reg.fit()
+
+predictions = model.predict(x) 
+
+print_model = model.summary()
+print(print_model)
+```
+
+### (Simple and Multiple) Linear Regression using sklearn
+
+```python
+#Import the model
+from sklearn.linear_model import LinearRegression
+
+# set values same as above
+
+# initialize the object and fit the model on our data:
+regressor = LinearRegression()
+regressor.fit(X, y)
+
+# This gives us an overview of the parameters we can set up for linear regression in sklearn. The most important one is fit_intercept. In sklearn, we don't have to add a constant to a dataset. We have to set this parameter to the value True if we want to compute an intercept as well.
+
+# We can check the beta coefficient now:
+print(regressor.coef_)
+
+# This will show us a NumPy array with beta coefficients. They have the same order as our columns in X. the first one is 0 because we have added a constant column before statsmodel modeling. This column doesn't have any meaning is sklearn so we could have dropped that before.
+
+# We can see that the results look much nicer in the statsmodel package. Another huge disadvantage of sklearn is that we don't have access to p-values, so we cannot check the importance of different variables for prediction.
+
+#If we want to know the R-squared, we can get it with:
+regressor.score(X,y)
+
+```
+
+
+### Interpreting the Regression Results
+- Adjusted. R-squared reflects the fit of the model. R-squared values range from 0 to 1, where a higher value generally indicates a better fit, assuming certain conditions are met.
+  
+- const coefficient is your Y-intercept. It means that if both the interest_rate and unemployment_rate coefficients are zero, then the expected output (i.e., the Y) would be equal to the const coefficient.
+- interest_rate coefficient represents the change in the output Y due to a change of one unit in the interest rate (everything else held constant)
+- unemployment_rate coefficient represents the change in the output Y due to a change of one unit in the unemployment rate (everything else held constant)
+- std err reflects the level of accuracy of the coefficients. The lower it is, the higher is the level of accuracy
+- P >|t| is your p-value. A p-value of less than 0.05 is considered to be statistically significant
+- Confidence Interval represents the range in which our coefficients are likely to fall (with a likelihood of 95%)
+
+### Polynomial Regression
+The main difference between multinomial and polynomial regression is that we still use only one feature but with many transformations.
+
+#### Multiple features (Set to 1 for single feature)
+```python
+def poly_reg(X,y,degree=2,plot=False):
+    """
+    X = df.drop(['y_column'], axis = 1) 
+    or
+    X = df[["x_1", "x_2"]]
+    
+    y = df["y"]
+
+    degree: degree of the polynomial (the higher, the more complex curved lines you can create). default = 2
+
+    plot: Whether to display your raw data or not. Default = False
+    """
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    # Split data into training and test data
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import PolynomialFeatures
+    from sklearn.linear_model import LinearRegression
+
+    if plot == True:
+        # Display data into subplots
+        
+        # Determine the number of x columns
+        x_columns = X.shape[1]
+
+        # Create a figure with subplots
+        fig, axs = plt.subplots(x_columns, 1, figsize=(10, 10))
+
+        # Plot each x column against y
+        for i in range(x_columns):
+            axs[i].scatter(X.iloc[:, i], y)
+            axs[i].set_title(X.columns[i])
+            axs[i].set_ylabel(y.name)
+        
+        plt.show()
+
+
+    # create the new polynomial features.
+    poly = PolynomialFeatures(degree=degree, include_bias=False) 
+    poly_features = poly.fit_transform(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(poly_features, y, test_size=0.3, random_state=42) # Within the train_test_split method we define all of our features (poly_features) and all of our responses (y). Then, with test_size we set what percentage of our all features
+
+    # Create polynomial regression model
+    poly_reg_model = LinearRegression()
+    poly_reg_model.fit(X_train, y_train)
+
+    # Test how model performs on previously unseen data:
+    poly_reg_y_predicted = poly_reg_model.predict(X_test) # save the predicted values our model predicts based on the previously unseen feature values (X_test)
+    from sklearn.metrics import mean_squared_error
+    poly_reg_rmse = np.sqrt(mean_squared_error(y_test, poly_reg_y_predicted)) # We take the square root of mean_squared_error to get the RMSE (root mean square error) which is a commonly used metric to evaluate a machine learning model’s performance. RMSE shows how far the values your model predicts
+    print("Polynomial Reg RMSE: ", poly_reg_rmse) #  Roughly speaking: the smaller the RMSE, the better the model.
+
+    # Create a linear regression model to compare the performance
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    lin_reg_model = LinearRegression()
+    lin_reg_model.fit(X_train, y_train)
+    lin_reg_y_predicted = lin_reg_model.predict(X_test)
+    lin_reg_rmse = np.sqrt(mean_squared_error(y_test, lin_reg_y_predicted))
+    print("Linear Reg RMSE (degree = 1): ", lin_reg_rmse)
+
+    print()
+    print("RMSE (root mean square error) which is a commonly used metric to evaluate a machine learning model’s performance. RMSE shows how far the values your model predicts are from the true values (y_test), on average. Roughly speaking: the smaller the RMSE, the better the model.")
+
+```
+#### Single Feature
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+x = np.arange(0, 30)
+y = [3, 4, 5, 7, 10, 8, 9, 10, 10, 23, 27, 44, 50, 63, 67, 60, 62, 70, 75, 88, 81, 87, 95, 100, 108, 135, 151, 160, 169, 179]
+# plt.figure(figsize=(10,6))
+# plt.scatter(x, y)
+# plt.show()
+
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
+# set an instance of PolynomialFeatures with the following settings:
+poly = PolynomialFeatures(degree=2, include_bias=False)
+## degree=2 means that we want to work with a 2nd degree polynomial: y = ß0 + ß1x + ß2x2
+
+## LinearRegression() will take care of this setting by default, so there’s no need to set include_bias to True. If it wasn’t taken care of, then include_bias=False would mean that we deliberately want the y intercept (ß0) to be equal to 0 – but we don’t want that. Here’s a great explanation on all of this: https://stackoverflow.com/questions/59725907/scikit-learn-polynomialfeatures-what-is-the-use-of-the-include-bias-option
+
+# fit our data to the model:
+poly_features = poly.fit_transform(x.reshape(-1, 1))
+## reshape(-1,1) transforms our numpy array x from a 1D array to a 2D array – this is required, otherwise we’d get the following error:
+
+# Create the polynomial regression model
+poly_reg_model = LinearRegression()
+
+# Fit model to data
+poly_reg_model.fit(poly_features, y)
+
+# Now that our model is properly trained, we can put it to work by instructing it to predict the responses (y_predicted) based on poly_features, and the coefficients it had estimated:Now that our model is properly trained, we can put it to work by instructing it to predict the responses (y_predicted) based on poly_features, and the coefficients it had estimated:
+y_predicted = poly_reg_model.predict(poly_features)
+
+# Display Polynomial Regression
+plt.figure(figsize=(10, 6))
+plt.title("Your first polynomial regression – congrats! :)", size=16)
+plt.scatter(x, y)
+plt.plot(x, y_predicted, c="red")
+plt.show()
+
+```
+# Model Optimization 
+## Gradient Descent
+
+## Stochastic Gradient Descent
+
+# Machine Learning - Reinforcement Learning
+# Machine Learning - Semi-Supervised Learning
 # VSCode
 ## SQLite
+# Useful Functions
+
+
+## OLS Regression Results Function
+```python
+def getOLS(x,y,Option = 0):
+    """
+    This function will provide you with OLS Regression Results for your dataset.
+
+    Recommended nomenclature for x:
+    df.drop(['y_column'], axis = 1) 
+    
+    Start with your entire DF minus your y value. 
+    You can then easily add values here as you drop them.
+
+    Recommended nomenclature for y:
+    df['y_column']
+
+    By default, the function will print the model, but if you want to do anything further, modify accordingly using Option for different scenarios.
+    """
+    import pandas as pd
+    import statsmodels.api as sm
+    
+    x = sm.add_constant(x)
+    model = sm.OLS(y, x).fit()
+    predictions = model.predict(x)
+    print_model = model.summary()
+
+    if Option == 0:
+        print(print_model)
+```
+
+## Cluster Functions
+```python
+# Setting up the function that will plot and display the cluster
+def plot_clusters(X,y_res, plt_cluster_centers = False):
+    X_centroids = []
+    Y_centroids = []
+
+    for cluster in set(y_res):
+        x = X[y_res == cluster,0]
+        y = X[y_res == cluster,1]
+        X_centroids.append(np.mean(x))
+        Y_centroids.append(np.mean(y))
+
+        plt.scatter(x,
+                    y,
+                    s=50,
+                    marker='s',
+                    label=f'cluster {cluster}')
+
+    if plt_cluster_centers:
+        plt.scatter(X_centroids,
+                    Y_centroids,
+                    marker='*',
+                    c='red',
+                    s=250,
+                    label='centroids')
+    plt.legend()
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid()
+    plt.show()
+
+
+def clusterPrep(X, y, x_label="X axis", y_label="Y axis", overview=True, elbowrule=True, dendogram=True):
+    #Required Librairies
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    if overview==True:
+        #plot the data for an overview
+        plt.rcParams["figure.figsize"] = (12,8) #set figure size
+        plt.scatter(X, y, c='black', marker='o', edgecolor='black', s=50) #c='black' is the color of the dots, s=50 is the size of the dots, edgecolor='black' is the color of the border of the dots, marker='o' is the shape of the dots
+        # Set the labels
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.grid()
+        plt.show()
+
+
+    # Elbow function
+    if elbowrule == True:
+        max_clusters
+        distortions = []
+        for i in range(1, max_clusters +1):
+            km = KMeans(n_clusters=i,
+                        init='k-means++',
+                        n_init=10,
+                        random_state=0)
+            km.fit(X)
+            distortions.append(km.inertia_)
+
+        plt.plot(range(1,max_clusters +1), distortions, marker='o')
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.show()
+
+
+    # define plot_dendrogram function
+    if dendogram == True:
+        method ='ward'
+        dendrogram = sch.dendrogram(sch.linkage(X, method=method))
+        plt.title("Dendrogram")
+        plt.ylabel(y_label)
+        plt.xlabel(x_label)
+        plt.show()
+        
+def clusterPlot(X, cluster_K=3, cluster_H=3, dbeps=0.8, dbSample=2, kmean=True, hierarch=True, DBSCAN=True):
+    from sklearn.cluster import KMeans #For KMeans
+
+    from sklearn.cluster import AgglomerativeClustering #hierarchy
+    import scipy.cluster.hierarchy as sch #hierarchy
+
+    from sklearn.datasets import make_moons #DBSCAN
+    from sklearn.cluster import DBSCAN #DBSCAN
+
+    ### K-Means
+    if kmean == True:
+        # Instantiate the KMeans class
+        km = KMeans(n_clusters=cluster_K, # how many clusters we expect. SEE ELBOW METHOD TO HELP DETERMINE
+                    n_init=10, # how many initial runs
+                    random_state=0)
+
+
+        # fit and predict
+        y_km = km.fit_predict(X)
+
+        # plot clustering result
+        plot_clusters(X, y_km, plt_cluster_centers= True) #If you want the centers plotted
+
+    ### Hierarchical
+    if hieararch == True:
+        # create an object
+        ac = AgglomerativeClustering(affinity='euclidean',
+                                     linkage='ward',
+                                     n_clusters = cluster_H) #Number of clusters. SEE DENDOGRAM TO HELP DETERMINE
+
+        # fit and predict
+        y_hc = ac.fit_predict(X)
+
+        # Plot clustering result
+        plot_clusters(X,y_hc)
+
+
+    ### DBScan
+    if DBSCAN == True:
+        # create an instance of DBSCAN class from the Sklearn library:
+        db = DBSCAN(eps=dbeps,
+                    min_samples=dbSample,
+                    metric='euclidean')
+
+        # We created the instance of DBSCAN class with a few parameters we didn't use before:
+
+        ## eps: The maximum distance between two samples for one to be considered as being in the neighborhood of the other. This is not a maximum bound on the distances of points within a cluster. It is the most important DBSCAN parameter to choose appropriately for our dataset and distance function.
+
+        ## min_samples: The number of samples in a neighborhood for a point to be considered as a core point. This includes the point itself.
+
+        # fit and predict
+        y_db = db.fit_predict(X)
+
+        # Plot DBSCAN clusters
+        plot_clusters(X,y_db)
+```
 
 
 
