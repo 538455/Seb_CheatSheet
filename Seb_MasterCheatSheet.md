@@ -135,11 +135,11 @@ Seb's Master Cheat Sheet
     - [Scale entire DF](#scale-entire-df)
     - [Scale single value](#scale-single-value)
   - [Convert categorical feature into multiple dummy variables](#convert-categorical-feature-into-multiple-dummy-variables)
+- [Sampling and dimensionality reduction](#sampling-and-dimensionality-reduction)
   - [Splitting Data into a 'Training' and a 'Testing' set](#splitting-data-into-a-training-and-a-testing-set)
     - [Holdout split](#holdout-split)
     - [K-fold split](#k-fold-split)
     - [Leave-One-Out split](#leave-one-out-split)
-- [Sampling and dimensionality reduction](#sampling-and-dimensionality-reduction)
   - [Resampling (Class Imbalance)](#resampling-class-imbalance)
   - [Principal Component Analysis](#principal-component-analysis)
     - [PCA Function](#pca-function)
@@ -2687,6 +2687,7 @@ data['Outlet_Type'] = le.fit_transform(data['Outlet_Type'])
 data.drop(['Item_Identifier','Outlet_Identifier','Outlet_Establishment_Year'],axis=1,inplace=True)
 
 ```
+# Sampling and dimensionality reduction
 ## Splitting Data into a 'Training' and a 'Testing' set
 ### Holdout split
 ```python
@@ -2750,7 +2751,6 @@ for train_index, test_index in loo.split(X):
 # Print the number of splits
 print(loo.get_n_splits(X))
 ```
-# Sampling and dimensionality reduction
 ## Resampling (Class Imbalance)
 ```python
 
