@@ -23,6 +23,7 @@ Seb's Master Cheat Sheet
     - [Set API Key (Terminal in Jupyter Lab.)](#set-api-key-terminal-in-jupyter-lab)
     - [Set API Key (Windows)](#set-api-key-windows)
     - [Get API Key (using OS)](#get-api-key-using-os)
+    - [Update SebCheatSheet](#update-sebcheatsheet)
 - [SQL](#sql)
 - [PostgresDB](#postgresdb)
 - [Python](#python)
@@ -148,6 +149,7 @@ Seb's Master Cheat Sheet
   - [Variable Selection](#variable-selection)
 - [Modeling Techniques - Unsupervised Learning](#modeling-techniques---unsupervised-learning)
   - [Clustering](#clustering)
+    - [Cluster Functions](#cluster-functions)
     - [Set Librairies and values](#set-librairies-and-values)
     - [Plot Custer Function](#plot-custer-function)
     - [K-Means Clustering (Distance-based, good for blobs)](#k-means-clustering-distance-based-good-for-blobs)
@@ -178,7 +180,6 @@ Seb's Master Cheat Sheet
   - [SQLite](#sqlite)
 - [Useful Functions](#useful-functions)
   - [OLS Regression Results Function](#ols-regression-results-function)
-  - [Cluster Functions](#cluster-functions)
 
 # Skipped
 - Exploratory_Data_Analysis.py
@@ -287,6 +288,15 @@ Note: When the command export is used in Terminal the variable will be created o
 ```python
 import os   #used to access the values of environment variables
 api_key = os.environ["XXX_API_KEY"]
+```
+
+### Update SebCheatSheet
+```cmd
+cd C:\Users\987\GIT_LHL\DataScienceBootcamp\Seb_Code\Seb_CheatSheet
+
+git add Seb_MasterCheatSheet.md
+git commit -m "Cheat Sheet Update"
+git push
 ```
 # SQL
 # PostgresDB
@@ -2978,6 +2988,144 @@ X
 
 # Modeling Techniques - Unsupervised Learning
 ## Clustering
+A set of functions that allow to use all 3x clusters easily
+- clusterPrep() -> Provides an overview graph, elbow methow and dendogram
+- clusterPlot() -> Provides with K-Mean Clustering, Hierarchical and DBSCAN
+
+- plot_clusters -> Used to plot clusters, generally don't call this one directly. It's a sub-function
+### Cluster Functions
+```python
+# Setting up the function that will plot and display the cluster
+def plot_clusters(X,y_res, plt_cluster_centers = False):
+    X_centroids = []
+    Y_centroids = []
+
+    for cluster in set(y_res):
+        x = X[y_res == cluster,0]
+        y = X[y_res == cluster,1]
+        X_centroids.append(np.mean(x))
+        Y_centroids.append(np.mean(y))
+
+        plt.scatter(x,
+                    y,
+                    s=50,
+                    marker='s',
+                    label=f'cluster {cluster}')
+
+    if plt_cluster_centers:
+        plt.scatter(X_centroids,
+                    Y_centroids,
+                    marker='*',
+                    c='red',
+                    s=250,
+                    label='centroids')
+    plt.legend()
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid()
+    plt.show()
+
+
+def clusterPrep(X, y, x_label="X axis", y_label="Y axis", overview=True, elbowrule=True, dendogram=True):
+    #Required Librairies
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    if overview==True:
+        #plot the data for an overview
+        plt.rcParams["figure.figsize"] = (12,8) #set figure size
+        plt.scatter(X, y, c='black', marker='o', edgecolor='black', s=50) #c='black' is the color of the dots, s=50 is the size of the dots, edgecolor='black' is the color of the border of the dots, marker='o' is the shape of the dots
+        # Set the labels
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.grid()
+        plt.show()
+
+
+    # Elbow function
+    if elbowrule == True:
+        max_clusters
+        distortions = []
+        for i in range(1, max_clusters +1):
+            km = KMeans(n_clusters=i,
+                        init='k-means++',
+                        n_init=10,
+                        random_state=0)
+            km.fit(X)
+            distortions.append(km.inertia_)
+
+        plt.plot(range(1,max_clusters +1), distortions, marker='o')
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.show()
+
+
+    # define plot_dendrogram function
+    if dendogram == True:
+        method ='ward'
+        dendrogram = sch.dendrogram(sch.linkage(X, method=method))
+        plt.title("Dendrogram")
+        plt.ylabel(y_label)
+        plt.xlabel(x_label)
+        plt.show()
+        
+def clusterPlot(X, cluster_K=3, cluster_H=3, dbeps=0.8, dbSample=2, kmean=True, hierarch=True, dbscan=True):
+    from sklearn.cluster import KMeans #For KMeans
+
+    from sklearn.cluster import AgglomerativeClustering #hierarchy
+    import scipy.cluster.hierarchy as sch #hierarchy
+
+    from sklearn.datasets import make_moons #DBSCAN
+    from sklearn.cluster import DBSCAN #DBSCAN
+
+    ### K-Means
+    if kmean == True:
+        # Instantiate the KMeans class
+        km = KMeans(n_clusters=cluster_K, # how many clusters we expect. SEE ELBOW METHOD TO HELP DETERMINE
+                    n_init=10, # how many initial runs
+                    random_state=0)
+
+
+        # fit and predict
+        y_km = km.fit_predict(X)
+
+        # plot clustering result
+        plot_clusters(X, y_km, plt_cluster_centers= True) #If you want the centers plotted
+
+    ### Hierarchical
+    if hieararch == True:
+        # create an object
+        ac = AgglomerativeClustering(affinity='euclidean',
+                                     linkage='ward',
+                                     n_clusters = cluster_H) #Number of clusters. SEE DENDOGRAM TO HELP DETERMINE
+
+        # fit and predict
+        y_hc = ac.fit_predict(X)
+
+        # Plot clustering result
+        plot_clusters(X,y_hc)
+
+
+    ### DBScan
+    if dbscan == True:
+        # create an instance of DBSCAN class from the Sklearn library:
+        db = DBSCAN(eps=dbeps,
+                    min_samples=dbSample,
+                    metric='euclidean')
+
+        # We created the instance of DBSCAN class with a few parameters we didn't use before:
+
+        ## eps: The maximum distance between two samples for one to be considered as being in the neighborhood of the other. This is not a maximum bound on the distances of points within a cluster. It is the most important DBSCAN parameter to choose appropriately for our dataset and distance function.
+
+        ## min_samples: The number of samples in a neighborhood for a point to be considered as a core point. This includes the point itself.
+
+        # fit and predict
+        y_db = db.fit_predict(X)
+
+        # Plot DBSCAN clusters
+        plot_clusters(X,y_db)
+```
+
 ### Set Librairies and values
 ```python
 #Required Librairies
@@ -3391,138 +3539,6 @@ def getOLS(x,y,Option = 0):
         print(print_model)
 ```
 
-## Cluster Functions
-```python
-# Setting up the function that will plot and display the cluster
-def plot_clusters(X,y_res, plt_cluster_centers = False):
-    X_centroids = []
-    Y_centroids = []
-
-    for cluster in set(y_res):
-        x = X[y_res == cluster,0]
-        y = X[y_res == cluster,1]
-        X_centroids.append(np.mean(x))
-        Y_centroids.append(np.mean(y))
-
-        plt.scatter(x,
-                    y,
-                    s=50,
-                    marker='s',
-                    label=f'cluster {cluster}')
-
-    if plt_cluster_centers:
-        plt.scatter(X_centroids,
-                    Y_centroids,
-                    marker='*',
-                    c='red',
-                    s=250,
-                    label='centroids')
-    plt.legend()
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.grid()
-    plt.show()
-
-
-def clusterPrep(X, y, x_label="X axis", y_label="Y axis", overview=True, elbowrule=True, dendogram=True):
-    #Required Librairies
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    if overview==True:
-        #plot the data for an overview
-        plt.rcParams["figure.figsize"] = (12,8) #set figure size
-        plt.scatter(X, y, c='black', marker='o', edgecolor='black', s=50) #c='black' is the color of the dots, s=50 is the size of the dots, edgecolor='black' is the color of the border of the dots, marker='o' is the shape of the dots
-        # Set the labels
-        plt.xlabel(x_label)
-        plt.ylabel(y_label)
-        plt.grid()
-        plt.show()
-
-
-    # Elbow function
-    if elbowrule == True:
-        max_clusters
-        distortions = []
-        for i in range(1, max_clusters +1):
-            km = KMeans(n_clusters=i,
-                        init='k-means++',
-                        n_init=10,
-                        random_state=0)
-            km.fit(X)
-            distortions.append(km.inertia_)
-
-        plt.plot(range(1,max_clusters +1), distortions, marker='o')
-        plt.xlabel(x_label)
-        plt.ylabel(y_label)
-        plt.show()
-
-
-    # define plot_dendrogram function
-    if dendogram == True:
-        method ='ward'
-        dendrogram = sch.dendrogram(sch.linkage(X, method=method))
-        plt.title("Dendrogram")
-        plt.ylabel(y_label)
-        plt.xlabel(x_label)
-        plt.show()
-        
-def clusterPlot(X, cluster_K=3, cluster_H=3, dbeps=0.8, dbSample=2, kmean=True, hierarch=True, DBSCAN=True):
-    from sklearn.cluster import KMeans #For KMeans
-
-    from sklearn.cluster import AgglomerativeClustering #hierarchy
-    import scipy.cluster.hierarchy as sch #hierarchy
-
-    from sklearn.datasets import make_moons #DBSCAN
-    from sklearn.cluster import DBSCAN #DBSCAN
-
-    ### K-Means
-    if kmean == True:
-        # Instantiate the KMeans class
-        km = KMeans(n_clusters=cluster_K, # how many clusters we expect. SEE ELBOW METHOD TO HELP DETERMINE
-                    n_init=10, # how many initial runs
-                    random_state=0)
-
-
-        # fit and predict
-        y_km = km.fit_predict(X)
-
-        # plot clustering result
-        plot_clusters(X, y_km, plt_cluster_centers= True) #If you want the centers plotted
-
-    ### Hierarchical
-    if hieararch == True:
-        # create an object
-        ac = AgglomerativeClustering(affinity='euclidean',
-                                     linkage='ward',
-                                     n_clusters = cluster_H) #Number of clusters. SEE DENDOGRAM TO HELP DETERMINE
-
-        # fit and predict
-        y_hc = ac.fit_predict(X)
-
-        # Plot clustering result
-        plot_clusters(X,y_hc)
-
-
-    ### DBScan
-    if DBSCAN == True:
-        # create an instance of DBSCAN class from the Sklearn library:
-        db = DBSCAN(eps=dbeps,
-                    min_samples=dbSample,
-                    metric='euclidean')
-
-        # We created the instance of DBSCAN class with a few parameters we didn't use before:
-
-        ## eps: The maximum distance between two samples for one to be considered as being in the neighborhood of the other. This is not a maximum bound on the distances of points within a cluster. It is the most important DBSCAN parameter to choose appropriately for our dataset and distance function.
-
-        ## min_samples: The number of samples in a neighborhood for a point to be considered as a core point. This includes the point itself.
-
-        # fit and predict
-        y_db = db.fit_predict(X)
-
-        # Plot DBSCAN clusters
-        plot_clusters(X,y_db)
-```
 
 
 
