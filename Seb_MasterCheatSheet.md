@@ -141,6 +141,14 @@ Seb's Master Cheat Sheet
     - [K-fold split](#k-fold-split)
     - [Leave-One-Out split](#leave-one-out-split)
   - [Resampling (Class Imbalance)](#resampling-class-imbalance)
+    - [1) Can You Collect More Data?](#1-can-you-collect-more-data)
+    - [2) Try Changing Your Performance Metric](#2-try-changing-your-performance-metric)
+    - [3) Try Resampling Your Dataset](#3-try-resampling-your-dataset)
+    - [4) Try Generate Synthetic Samples](#4-try-generate-synthetic-samples)
+    - [5) Try Different Algorithms](#5-try-different-algorithms)
+    - [6) Try Penalized Models](#6-try-penalized-models)
+    - [7) Try a Different Perspective](#7-try-a-different-perspective)
+    - [8) Try Getting Creative](#8-try-getting-creative)
   - [Principal Component Analysis](#principal-component-analysis)
     - [PCA Function](#pca-function)
     - [Basic PCA use:](#basic-pca-use)
@@ -2752,9 +2760,134 @@ for train_index, test_index in loo.split(X):
 print(loo.get_n_splits(X))
 ```
 ## Resampling (Class Imbalance)
-```python
+https://machinelearningmastery.com/tactics-to-combat-imbalanced-classes-in-your-machine-learning-dataset/
 
-```
+### 1) Can You Collect More Data?
+You might think it’s silly, but collecting more data is almost always overlooked.
+
+Can you collect more data? Take a second and think about whether you are able to gather more data on your problem.
+
+A larger dataset might expose a different and perhaps more balanced perspective on the classes.
+
+More examples of minor classes may be useful later when we look at resampling your dataset.
+
+### 2) Try Changing Your Performance Metric
+Accuracy is not the metric to use when working with an imbalanced dataset. We have seen that it is misleading.
+
+There are metrics that have been designed to tell you a more truthful story when working with imbalanced classes.
+
+I give more advice on selecting different performance measures in my post “Classification Accuracy is Not Enough: More Performance Measures You Can Use“.
+
+In that post I look at an imbalanced dataset that characterizes the recurrence of breast cancer in patients.
+
+From that post, I recommend looking at the following performance measures that can give more insight into the accuracy of the model than traditional classification accuracy:
+
+Confusion Matrix: A breakdown of predictions into a table showing correct predictions (the diagonal) and the types of incorrect predictions made (what classes incorrect predictions were assigned).
+Precision: A measure of a classifiers exactness.
+Recall: A measure of a classifiers completeness
+F1 Score (or F-score): A weighted average of precision and recall.
+I would also advice you to take a look at the following:
+
+Kappa (or Cohen’s kappa): Classification accuracy normalized by the imbalance of the classes in the data.
+ROC Curves: Like precision and recall, accuracy is divided into sensitivity and specificity and models can be chosen based on the balance thresholds of these values.
+You can learn a lot more about using ROC Curves to compare classification accuracy in our post “Assessing and Comparing Classifier Performance with ROC Curves“.
+
+Still not sure? Start with kappa, it will give you a better idea of what is going on than classification accuracy.
+
+
+### 3) Try Resampling Your Dataset
+You can change the dataset that you use to build your predictive model to have more balanced data.
+
+This change is called sampling your dataset and there are two main methods that you can use to even-up the classes:
+
+You can add copies of instances from the under-represented class called over-sampling (or more formally sampling with replacement), or
+You can delete instances from the over-represented class, called under-sampling.
+These approaches are often very easy to implement and fast to run. They are an excellent starting point.
+
+In fact, I would advise you to always try both approaches on all of your imbalanced datasets, just to see if it gives you a boost in your preferred accuracy measures.
+
+You can learn a little more in the the Wikipedia article titled “Oversampling and undersampling in data analysis“.
+
+
+Some Rules of Thumb
+Consider testing under-sampling when you have an a lot data (tens- or hundreds of thousands of instances or more)
+Consider testing over-sampling when you don’t have a lot of data (tens of thousands of records or less)
+Consider testing random and non-random (e.g. stratified) sampling schemes.
+Consider testing different resampled ratios (e.g. you don’t have to target a 1:1 ratio in a binary classification problem, try other ratios)
+
+### 4) Try Generate Synthetic Samples
+A simple way to generate synthetic samples is to randomly sample the attributes from instances in the minority class.
+
+You could sample them empirically within your dataset or you could use a method like Naive Bayes that can sample each attribute independently when run in reverse. You will have more and different data, but the non-linear relationships between the attributes may not be preserved.
+
+There are systematic algorithms that you can use to generate synthetic samples. The most popular of such algorithms is called SMOTE or the Synthetic Minority Over-sampling Technique.
+
+As its name suggests, SMOTE is an oversampling method. It works by creating synthetic samples from the minor class instead of creating copies. The algorithm selects two or more similar instances (using a distance measure) and perturbing an instance one attribute at a time by a random amount within the difference to the neighboring instances.
+
+Learn more about SMOTE, see the original 2002 paper titled “SMOTE: Synthetic Minority Over-sampling Technique“.
+
+There are a number of implementations of the SMOTE algorithm, for example:
+
+In Python, take a look at the “UnbalancedDataset” module. It provides a number of implementations of SMOTE as well as various other resampling techniques that you could try.
+In R, the DMwR package provides an implementation of SMOTE.
+In Weka, you can use the SMOTE supervised filter.
+
+### 5) Try Different Algorithms
+As always, I strongly advice you to not use your favorite algorithm on every problem. You should at least be spot-checking a variety of different types of algorithms on a given problem.
+
+For more on spot-checking algorithms, see my post “Why you should be Spot-Checking Algorithms on your Machine Learning Problems”.
+
+That being said, decision trees often perform well on imbalanced datasets. The splitting rules that look at the class variable used in the creation of the trees, can force both classes to be addressed.
+
+If in doubt, try a few popular decision tree algorithms like C4.5, C5.0, CART, and Random Forest.
+
+For some example R code using decision trees, see my post titled “Non-Linear Classification in R with Decision Trees“.
+
+For an example of using CART in Python and scikit-learn, see my post titled “Get Your Hands Dirty With Scikit-Learn Now“.
+
+### 6) Try Penalized Models
+You can use the same algorithms but give them a different perspective on the problem.
+
+Penalized classification imposes an additional cost on the model for making classification mistakes on the minority class during training. These penalties can bias the model to pay more attention to the minority class.
+
+Often the handling of class penalties or weights are specialized to the learning algorithm. There are penalized versions of algorithms such as penalized-SVM and penalized-LDA.
+
+It is also possible to have generic frameworks for penalized models. For example, Weka has a CostSensitiveClassifier that can wrap any classifier and apply a custom penalty matrix for miss classification.
+
+Using penalization is desirable if you are locked into a specific algorithm and are unable to resample or you’re getting poor results. It provides yet another way to “balance” the classes. Setting up the penalty matrix can be complex. You will very likely have to try a variety of penalty schemes and see what works best for your problem.
+
+### 7) Try a Different Perspective
+There are fields of study dedicated to imbalanced datasets. They have their own algorithms, measures and terminology.
+
+Taking a look and thinking about your problem from these perspectives can sometimes shame loose some ideas.
+
+Two you might like to consider are anomaly detection and change detection.
+
+Anomaly detection is the detection of rare events. This might be a machine malfunction indicated through its vibrations or a malicious activity by a program indicated by it’s sequence of system calls. The events are rare and when compared to normal operation.
+
+This shift in thinking considers the minor class as the outliers class which might help you think of new ways to separate and classify samples.
+
+Change detection is similar to anomaly detection except rather than looking for an anomaly it is looking for a change or difference. This might be a change in behavior of a user as observed by usage patterns or bank transactions.
+
+Both of these shifts take a more real-time stance to the classification problem that might give you some new ways of thinking about your problem and maybe some more techniques to try.
+
+
+### 8) Try Getting Creative
+Really climb inside your problem and think about how to break it down into smaller problems that are more tractable.
+
+For inspiration, take a look at the very creative answers on Quora in response to the question “In classification, how do you handle an unbalanced training set?”
+
+For example:
+
+Decompose your larger class into smaller number of other classes…
+
+…use a One Class Classifier… (e.g. treat like outlier detection)
+
+…resampling the unbalanced training set into not one balanced set, but several. Running an ensemble of classifiers on these sets could produce a much better result than one classifier alone
+
+These are just a few of some interesting and creative ideas you could try.
+
+For more ideas, check out these comments on the reddit post “Classification when 80% of my training set is of one class“.
 
 ## Principal Component Analysis
 ### PCA Function
