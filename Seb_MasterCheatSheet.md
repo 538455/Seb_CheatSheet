@@ -187,6 +187,7 @@
   - [Gradient Descent](#gradient-descent)
   - [Stochastic Gradient Descent](#stochastic-gradient-descent)
 - [Model Evaluation](#model-evaluation)
+  - [Grid Search](#grid-search)
   - [Regression Metrics](#regression-metrics)
     - [Mean Squared Error (MSE)](#mean-squared-error-mse)
     - [Root-Mean-Squared-Error (RMSE)](#root-mean-squared-error-rmse)
@@ -3708,7 +3709,71 @@ plt.show()
 ## Stochastic Gradient Descent
 
 # Model Evaluation
+## Grid Search
+```python
+import numpy as np
+import sklearn  # scikit-learn
+from sklearn.model_selection import GridSearchCV
+from sklearn import datasets, svm
+import matplotlib.pyplot as plt
 
+### Create Two Datasets
+## In the code below, we load the digits dataset, which contains 64 feature variables. Each feature denotes the darkness of a pixel in an 8 by 8 image of a handwritten digit. We can see these features for the first observation:
+
+# Load the digit data
+digits = datasets.load_digits()
+# View the features of the first observation
+digits.data[0:1]
+
+## The target data is a vector containing the image’s true digit. For example, the first observation is a handwritten digit for ‘0’.
+# View the target of the first observation
+digits.target[0:1]
+
+## To demonstrate cross validation and parameter tuning, first we are going to divide the digit data into two datasets called data1 and data2. data1 contains the first 1000 rows of the digits data, while data2 contains the remaining ~800 rows. Note that this split is separate to the cross validation we will conduct and is done purely to demonstrate something at the end of the tutorial. In other words, don’t worry about data2 for now, we will come back to it.
+# Create dataset 1
+data1_features = digits.data[:1000]
+data1_target = digits.target[:1000]
+
+# Create dataset 2
+data2_features = digits.data[1000:]
+data2_target = digits.target[1000:]
+
+### Create Parameter Candidates
+## Before looking for which combination of parameter values produces the most accurate model, we must specify the different candidate values we want to try. In the code below we have a number of candidate parameter values, including four different values for C (1, 10, 100, 1000), two values for gamma (0.001, 0.0001), and two kernels (linear, rbf). The grid search will try all combinations of parameter values and select the set of parameters which provides the most accurate model.
+parameter_candidates = [
+  {'C': [1, 10, 100, 1000], 'kernel': ['linear']},
+  {'C': [1, 10, 100, 1000], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
+]
+
+### Conduct Grid Search To Find Parameters Producing Highest Score
+## Now we are ready to conduct the grid search using scikit-learn’s GridSearchCV which stands for grid search cross validation. By default, the GridSearchCV’s cross validation uses 3-fold KFold or StratifiedKFold depending on the situation.
+# Create a classifier object with the classifier and parameter candidates
+clf = GridSearchCV(estimator=svm.SVC(), param_grid=parameter_candidates, n_jobs=-1)
+
+# Train the classifier on data1's feature and target data
+clf.fit(data1_features, data1_target)  
+
+## Success! We have our results! First, let’s look at the accuracy score when we apply the model to the data1’s test data.
+# View the accuracy score
+print('Best score for data1:', clf.best_score_) 
+
+## Which parameters are the best? We can tell scikit-learn to display them:
+# View the best parameters for the model found using grid search
+print('Best C:',clf.best_estimator_.C) 
+print('Best Kernel:',clf.best_estimator_.kernel)
+print('Best Gamma:',clf.best_estimator_.gamma)
+    ## This tells us that the most accurate model uses C=10, the rbf kernel, and gamma=0.001
+
+### Sanity Check Using Second Dataset
+## Remember the second dataset we created? Now we will use it to prove that those parameters are actually used by the model. First, we apply the classifier we just trained to the second dataset. Then we will train a new support vector classifier from scratch using the parameters found using the grid search. We should get the same results for both models.
+# Apply the classifier trained using data1 to data2, and view the accuracy score
+clf.score(data2_features, data2_target) 
+
+# Train a new classifier using the best parameters found by the grid search
+svm.SVC(C=10, kernel='rbf', gamma=0.001).fit(data1_features, data1_target).score(data2_features, data2_target)
+
+
+```
 ## Regression Metrics
 
 ### Mean Squared Error (MSE)
