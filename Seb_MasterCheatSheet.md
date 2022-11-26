@@ -42,6 +42,7 @@
     - [Intersect](#intersect)
     - [Except](#except)
   - [Subqueries](#subqueries)
+  - [Get the number of columns](#get-the-number-of-columns)
 - [PostgresDB](#postgresdb)
 - [Python](#python)
   - [Strings](#strings)
@@ -515,6 +516,10 @@ SELECT COUNT(*) FROM
 WHERE inner_number_of_values > 100;
 
 --The inner query counts the number of values in column2 - for each group of unique column1 values. Then the outer query uses the inner query's results and counts the number of values where inner_number_of_values are greater than 100. (The result is one number.)
+```
+## Get the number of columns
+```SQL
+SELECT COUNT(*) as No_of_Column FROM information_schema.columns WHERE table_name ='table'
 ```
 
 # PostgresDB
