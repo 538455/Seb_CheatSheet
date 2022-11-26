@@ -379,7 +379,7 @@ WHERE col1='text'
                     SELECT *
                     FROM table2
                     WHERE id = table.id --id is the value of table2
-    )
+                    )
 ORDER BY col1 DESC
 LIMIT 100
 ;
