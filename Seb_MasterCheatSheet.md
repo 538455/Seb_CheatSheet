@@ -26,6 +26,22 @@
     - [Get API Key (using OS)](#get-api-key-using-os)
     - [Update SebCheatSheet](#update-sebcheatsheet)
 - [SQL](#sql)
+  - [Order](#order)
+  - [WHERE](#where)
+  - [HAVING](#having)
+  - [Unique Filtering](#unique-filtering)
+  - [SQL Functions](#sql-functions)
+  - [Group by](#group-by)
+  - [SQL Aliases](#sql-aliases)
+  - [Combine two columns in 1](#combine-two-columns-in-1)
+  - [IF/THEN](#ifthen)
+  - [WITH](#with)
+  - [JOIN](#join)
+    - [2x Tables](#2x-tables)
+    - [\>2x tables](#2x-tables-1)
+    - [Intersect](#intersect)
+    - [Except](#except)
+  - [Subqueries](#subqueries)
 - [PostgresDB](#postgresdb)
 - [Python](#python)
   - [Strings](#strings)
@@ -332,6 +348,175 @@ git commit -m "Cheat Sheet Update"
 git push
 ```
 # SQL
+## Order
+1. SELECT
+2. FROM
+3. JOIN (ON)
+4. WHERE
+5. GROUP BY
+6. HAVING
+7. ORDER BY
+8. LIMIT 
+## WHERE
+```SQL
+SELECT *
+FROM table
+WHERE col1='text'
+    OR col1='test'
+    AND col2>= 10  -- =, !=, <,>, <=, >=
+    AND col3 LIKE '%text%'
+    AND col4 BETWEEN 100 AND 500
+    AND col5 IS NOT NULL
+    AND col6 IS NULL
+    AND col7 IN (1,2,3,4,5) --more details in the 'IN' section
+    AND col8 < (
+                SELECT AVG(col8)
+                FROM table2
+                WHERE id = table.id --id is the value of table2
+                    AND col2 < 300
+                )
+    AND col9 EXISTS (
+                    SELECT *
+                    FROM table2
+                    WHERE id = table.id --id is the value of table2
+    )
+ORDER BY col1 DESC
+LIMIT 100
+;
+```
+## HAVING
+```SQL
+SELECT col1
+    , COUNT(col2)
+FROM table
+GROUP BY col1
+HAVING COUNT(col2) > 100
+```
+```SQL
+SELECT col1
+    , col2
+    , COUNT(col3)
+FROM table
+WHERE col2 = 'text'
+GROUP BY col1
+HAVING COUNT(col3) > 100
+```
+## Unique Filtering
+```SQL
+SELECT DISTINCT(col1)
+FROM table
+LIMIT 100
+```
+## SQL Functions
+```SQL
+SELECT COUNT(*)
+FROM table
+WHERE col1='text'
+```
+```SQL
+SELECT AVG(col1)
+-- SELECT SUM(col1)
+-- SELECT MIN(col1)
+-- SELECT MAX(col1)
+FROM table
+WHERE col2 > 500
+```
+## Group by
+```SQL
+SELECT col1
+    , COUNT(col2)
+    -- , SUM(col2)
+    -- , MIN(col2)
+    -- , MAX(col2)
+FROM table
+GROUP BY col1
+```
+## SQL Aliases
+```SQL
+--SELECT col1
+    , COUNT(col2) AS Number_of_values
+--FROM table
+--GROUP BY col1
+```
+## Combine two columns in 1
+```SQL
+SELECT col 1
+    , col2
+    , col1 || col2 col3 --Merge col 1 and col 2 to become col 3
+FROM table
+```
+## IF/THEN
+```SQL
+SELECT col1
+    , CASE
+        WHEN col2 ='text' THEN 'value1'
+        WHEN col2 ='text' THEN 'value2'
+        ELSE 'value3'
+        END
+    AS col3
+```
+## WITH
+```SQL
+WITH track_info AS
+(
+	SELECT
+		t.name,
+		ar.name artist,
+		al.title album_name,
+	FROM track t
+	INNER JOIN album al ON al.album_id = t.album_id
+	INNER JOIN artist ar ON ar.artist_id = al.artist_id
+)
+, last_name_g AS
+(
+    SELECT * FROM usa
+    WHERE last_name LIKE "G%"
+)
+SELECT * FROM track_info
+WHERE album_name = "Jagged Little Pill";
+```
+## JOIN
+### 2x Tables
+```SQL
+SELECT *
+FROM table
+JOIN table2 --short for INNER JOIN
+--LEFT JOIN table2
+--RIGHT JOIN table2
+--FULL OUTER JOIN table2
+ON table.col1=table2.col1
+```
+### >2x tables
+```SQL
+SELECT * FROM table 1
+JOIN table2 ON table.col1 = table2.col1
+    LEFT JOIN table3 ON table.col = table3.col1
+```
+### Intersect
+```SQL
+-- Selecting rows that occur in both SELECT statements:
+SELECT * from customer_usa
+INTERSECT
+SELECT * from customer_gt_90_dollars;
+```
+### Except
+```SQL
+-- Selecting rows that occur in the first SELECT statement but not the second SELECT statement:
+SELECT * from customer_usa
+EXCEPT
+SELECT * from customer_gt_90_dollars;
+```
+## Subqueries
+```SQL
+SELECT COUNT(*) FROM
+ (SELECT column1, COUNT(column2) AS inner_number_of_values
+ FROM table_name
+ GROUP BY column1) AS inner_query
+WHERE inner_number_of_values > 100;
+
+--The inner query counts the number of values in column2 - for each group of unique column1 values. Then the outer query uses the inner query's results and counts the number of values where inner_number_of_values are greater than 100. (The result is one number.)
+```
+
 # PostgresDB
 
 # Python
