@@ -136,6 +136,9 @@
     - [Scale entire DF](#scale-entire-df)
     - [Scale single value](#scale-single-value)
   - [Convert categorical feature into multiple dummy variables](#convert-categorical-feature-into-multiple-dummy-variables)
+    - [With explanation (drop first)](#with-explanation-drop-first)
+    - [Simple](#simple-1)
+    - [Convert String Categorical into numeric values](#convert-string-categorical-into-numeric-values)
 - [Sampling and dimensionality reduction](#sampling-and-dimensionality-reduction)
   - [Resampling (Class Imbalance)](#resampling-class-imbalance)
     - [1) Can You Collect More Data?](#1-can-you-collect-more-data)
@@ -183,6 +186,9 @@
     - [Polynomial Regression](#polynomial-regression)
       - [Multiple features (Set to 1 for single feature)](#multiple-features-set-to-1-for-single-feature)
       - [Single Feature](#single-feature)
+    - [Logistic Regression](#logistic-regression)
+      - [Code with the flow - 1](#code-with-the-flow---1)
+      - [Code with the flow - 2](#code-with-the-flow---2)
 - [Model Optimization](#model-optimization)
   - [Gradient Descent](#gradient-descent)
   - [Stochastic Gradient Descent](#stochastic-gradient-descent)
@@ -2421,6 +2427,7 @@ def dataCleaning(df, code=True, tips=False, orientation=True, formatIssues=True,
         print()
         for col in df.columns:
             if df[col].dtype == 'object' or df[col].dtype == 'int64' or df[col].dtype == 'datetime64':
+                print("df.rename(columns={'" + col + "': ''}, inplace=True)", "#rename column")
                 print("df['" + col + "'] = df['" + col + "'].replace('old_value', 'new_value')")
                 print("df['" + col + "'] = df['" + col + "'].astype('new_type') # new_type can be int64, float64, object, category, datetime64")
                 print("df.drop('" + col + "', axis=1, inplace=True)")                
@@ -2671,48 +2678,47 @@ A = MinMaxScaler(A)
 X['age_scaled'] = (X['age'] - X['age'].min()) / (X['age'].max() - X['age'].min()) * 10
 ```
 ## Convert categorical feature into multiple dummy variables
+### With explanation (drop first)
 ```python
-#Print Pregnancies column
-diabetes_df['Pregnancies']
+### Step #3: Transform the Categorical Variables: Creating Dummy Variables
+# Among the five categorical variables, sex, fbs, and exang only have two levels of 0 and 1, so they are already in the dummy variable format. But we still need to convert cp and restecg into dummy variables.
 
-#convert Pregnancies column into multiple dummy variables
-pd.get_dummies(diabetes_df['Pregnancies'])
+#Let’s take a closer look at these two variables.
+df['cp'].value_counts(dropna=False)
+df['restecg'].value_counts(dropna=False)
 
-#convert Pregnancies column into multiple dummy variables in the same dataframe
-pd.get_dummies(diabetes_df, prefix='preg', columns=['Pregnancies'])
+# There are four classes for cp and three for restecg. We can use the get_dummies function to convert them into dummy variables. The drop_first parameter is set to True so that the unnecessary first level dummy variable is removed.
+df = pd.get_dummies(df, columns=['cp', 'restecg'], drop_first=True)
 
+## As shown, the variable cp is now represented by three dummy variables cp_2, cp_3, and cp_4. cp_1 was removed since it’s not necessary to distinguish the classes of cp.
+## when cp = 1: cp_2 = 0, cp_3 = 0, cp_4 = 0.
+## when cp = 2: cp_2 = 1, cp_3 = 0, cp_4 = 0.
+## when cp = 3: cp_2 = 0, cp_3 = 1, cp_4 = 0.
+## when cp = 4: cp_2 = 0, cp_3 = 0, cp_4 = 1.
+```
+### Simple
+```python
+# This is the values we'll convert into dummy
+# diabetes_df['Pregnancies']
 
+#convert column into multiple dummy variables.
+pd.get_dummies(df, prefix='YouChoose', columns=['col'])
+```
+### Convert String Categorical into numeric values
+Since scikit-learn algorithms accept only numerical variables, we need to convert all categorical variables into numeric types if they are not already done. 
 
-## Alternate way to do it
-# Since scikit-learn algorithms accept only numerical variables, we need to convert all categorical variables into numeric types.
-# We will use the LabelEncoder class from the scikit-learn library to do this.
+We will use the LabelEncoder class from the scikit-learn library to do this.
+
+```python
 from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 
 # New variable for outlet
-data['Outlet'] = le.fit_transform(data['Outlet_Identifier'])
-
-# New variable for Item_Fat_Content
-data['Item_Fat_Content'] = le.fit_transform(data['Item_Fat_Content'])
-
-# New variable for Item_Type
-data['Item_Type'] = le.fit_transform(data['Item_Type'])
-
-# New variable for Item_Category
-data['Item_Category'] = le.fit_transform(data['Item_Category'])
-
-# New variable for Outlet_Size
-data['Outlet_Size'] = le.fit_transform(data['Outlet_Size'])
-
-# New variable for Outlet_Location_Type
-data['Outlet_Location_Type'] = le.fit_transform(data['Outlet_Location_Type'])
-
-# New variable for Outlet_Type
-data['Outlet_Type'] = le.fit_transform(data['Outlet_Type'])
+X = df['col']
+df['col'] = le.fit_transform(df['col'])
 
 # Drop the columns which have been converted to different types
-data.drop(['Item_Identifier','Outlet_Identifier','Outlet_Establishment_Year'],axis=1,inplace=True)
-
+df.drop(['col', 'col2'],axis=1,inplace=True)
 ```
 # Sampling and dimensionality reduction
 
@@ -3703,6 +3709,216 @@ plt.plot(x, y_predicted, c="red")
 plt.show()
 
 ```
+
+### Logistic Regression
+#### Code with the flow - 1
+```python
+### Preparation
+# Data set URL
+dataset_url = "https://raw.githubusercontent.com/harika-bonthu/02-linear-regression-fish/master/datasets_229906_491820_Fish.csv"
+
+# Create a pandas data frame from the fish dataset
+import pandas as pd
+fish = pd.read_csv(dataset_url, error_bad_lines=False)
+fish.head()
+
+# Defining input and target variables
+X = fish.iloc[:, 1:]
+y = fish.loc[:, 'Species']
+
+# Scaling the input features using MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+scaler.fit(X)
+X_scaled = scaler.transform(X)
+
+# Label Encoding the target variable using LabelEncoder
+from sklearn.preprocessing import LabelEncoder
+label_encoder = LabelEncoder()
+y = label_encoder.fit_transform(y)
+
+# Splitting into train and test datasets using train_test_split
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test= train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+## This is the Logistic Regression Part---------------------------------------
+# Model Building and training
+from sklearn.linear_model import LogisticRegression
+clf = LogisticRegression()
+## ----------------------------------------------------------------------------
+
+# Training the model
+clf.fit(X_train, y_train)
+
+# Predicting the output
+y_pred = clf.predict(X_test)
+
+# Computing the accuracy
+from sklearn.metrics import accuracy_score
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy: {:.2f}%".format(accuracy * 100))
+
+## Our model achieved 81.25% accuracy, which is pretty good.
+
+# Confusion Matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.metrics import confusion_matrix
+cf = confusion_matrix(y_test, y_pred)
+plt.figure()
+sns.heatmap(cf, annot=True)
+plt.xlabel('Prediction')
+plt.ylabel('Target')
+plt.title('Confusion Matrix')
+```
+#### Code with the flow - 2
+```python
+### Step #1: Import Python Libraries
+import pandas as pd
+import numpy as np
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import log_loss, roc_auc_score, recall_score, precision_score, average_precision_score, f1_score, classification_report, accuracy_score, plot_roc_curve, plot_precision_recall_curve, plot_confusion_matrix
+
+### Step #2: Explore and Clean the Data
+# https://www.kaggle.com/imnikhilanand/heart-attack-prediction/data?select=data.csv 
+df = pd.read_csv('datasets_23651_30233_data.csv', na_values='?')
+df.columns
+
+# This corresponds to the documentation on Kaggle that 14 variables are available for analysis.
+# ‘num ‘ is the target, a value of 1 shows the presence of heart disease in the patient, otherwise 0.
+# Let’s rename the target variable num to target, and also print out the classes and their counts.
+df = df.rename(columns={'num       ': 'target'})
+df['target'].value_counts(dropna=False)
+## We can see that the dataset is only slightly imbalanced among classes of 0 and 1, so we’ll proceed without special adjustment.
+
+# Next, let’s take a look at the summary information of the dataset.
+df.info()
+
+# As you can see, there are 294 observations in the dataset and 13 other features besides target.
+# To keep the cleaning process simple, we’ll remove:
+## the columns with many missing values, which are slope, ca, thal.
+## the rows with missing values.
+df = df.drop(['slope', 'ca', 'thal'], axis=1)
+df = df.dropna().copy()
+
+# Let’s recheck the summary to make sure the dataset is cleaned.
+df.info()
+
+### Step #3: Transform the Categorical Variables: Creating Dummy Variables
+# Among the five categorical variables, sex, fbs, and exang only have two levels of 0 and 1, so they are already in the dummy variable format. But we still need to convert cp and restecg into dummy variables.
+
+#Let’s take a closer look at these two variables.
+df['cp'].value_counts(dropna=False)
+df['restecg'].value_counts(dropna=False)
+
+# There are four classes for cp and three for restecg. We can use the get_dummies function to convert them into dummy variables. The drop_first parameter is set to True so that the unnecessary first level dummy variable is removed.
+df = pd.get_dummies(df, columns=['cp', 'restecg'], drop_first=True)
+
+## As shown, the variable cp is now represented by three dummy variables cp_2, cp_3, and cp_4. cp_1 was removed since it’s not necessary to distinguish the classes of cp.
+## when cp = 1: cp_2 = 0, cp_3 = 0, cp_4 = 0.
+## when cp = 2: cp_2 = 1, cp_3 = 0, cp_4 = 0.
+## when cp = 3: cp_2 = 0, cp_3 = 1, cp_4 = 0.
+## when cp = 4: cp_2 = 0, cp_3 = 0, cp_4 = 1.
+
+### Step #4: Split Training and Test Datasets
+# To do this, we can use the train_test_split method with the below specifications:
+random_seed = 888
+df_train, df_test = train_test_split(df, test_size=0.2, random_state=random_seed, stratify=df['target'])
+
+
+print(df_train.shape)
+print(df_test.shape)
+print()
+print(df_train['target'].value_counts(normalize=True))
+print()
+print(df_test['target'].value_counts(normalize=True))
+
+### Step #5: Transform the Numerical Variables: Scaling
+# Before fitting the model, let’s also scale the numerical variables, which is another common practice in machine learning.
+# This step has to be done after the train test split since the scaling calculations are based on the training dataset.
+scaler = StandardScaler()
+scaler.fit(df_train[numeric_cols])
+
+def get_features_and_target_arrays(df, numeric_cols, cat_cols, scaler):
+    X_numeric_scaled = scaler.transform(df[numeric_cols])
+    X_categorical = df[cat_cols].to_numpy()
+    X = np.hstack((X_categorical, X_numeric_scaled))
+    y = df['target']
+    return X, y
+
+X, y = get_features_and_target_arrays(df_train, numeric_cols, cat_cols, scaler)
+
+### Step #6: Fit the Logistic Regression Model
+# We first create an instance clf of the class LogisticRegression. Then we can fit it using the training dataset.
+clf = LogisticRegression(penalty='none') # logistic regression with no penalty term in the cost function.
+clf.fit(X, y)
+
+### Step #7: Evaluate the Model
+# Before starting, we need to get the scaled test dataset.
+X_test, y_test = get_features_and_target_arrays(df_test, numeric_cols, cat_cols, scaler)
+
+# We can plot the ROC curve.
+plot_roc_curve(clf, X_test, y_test)
+
+# We can also plot the precision-recall curve.
+plot_precision_recall_curve(clf, X_test, y_test)
+
+# To calculate other metrics, we need to get the prediction results from the test dataset:
+## predict_proba to get the predicted probability of the logistic regression for each class in the model. The first column of the output of predict_proba is P(target = 0), and the second column is P(target = 1). So we are calling for the second column by its index position 1.
+## predict the test dataset labels by choosing the class with the highest probability, which means a threshold of 0.5 in this binary example.
+test_prob = clf.predict_proba(X_test)[:, 1]
+test_pred = clf.predict(X_test)
+
+# Using the below Python code, we can calculate some other evaluation metrics:
+## Log loss
+## AUC
+## Average Precision
+## Accuracy
+## Precision
+## Recall
+## F1 score
+## Classification report, which contains some of the above plus extra information
+print('Log loss = {:.5f}'.format(log_loss(y_test, test_prob)))
+print('AUC = {:.5f}'.format(roc_auc_score(y_test, test_prob)))
+print('Average Precision = {:.5f}'.format(average_precision_score(y_test, test_prob)))
+print('\nUsing 0.5 as threshold:')
+print('Accuracy = {:.5f}'.format(accuracy_score(y_test, test_pred)))
+print('Precision = {:.5f}'.format(precision_score(y_test, test_pred)))
+print('Recall = {:.5f}'.format(recall_score(y_test, test_pred)))
+print('F1 score = {:.5f}'.format(f1_score(y_test, test_pred)))
+print('\nClassification Report')
+print(classification_report(y_test, test_pred))
+
+#Also, it’s a good idea to get the metrics for the training set for comparison, which we’ll not show in this tutorial. For example, if the training set gives accuracy that’s much higher than the test dataset, there could be overfitting.
+
+# To show the confusion matrix, we can plot a heatmap, which is also based on a threshold of 0.5 for binary classification.
+print('Confusion Matrix')
+plot_confusion_matrix(clf, X_test, y_test)
+
+# Step #8: Interpret the Results
+coefficients = np.hstack((clf.intercept_, clf.coef_[0]))
+pd.DataFrame(data={'variable': ['intercept'] + cat_cols + numeric_cols, 'coefficient': coefficients})
+
+## For categorical feature sex, this fitted model says that holding all the other features at fixed values, the odds of having heart disease for males (sex=1) to the odds of having heart disease for females is exp(1.290292). You can derive it based on the logistic regression equation.
+
+## For categorical feature cp (chest pain type), we have created dummy variables for it, the reference value is typical angina (cp = 1). So the odds ratio of atypical angina (cp = 2) to typical angina (cp = 1) is exp(-2.895253).
+
+## Since the numerical variables are scaled by StandardScaler, we need to think of them in terms of standard deviations. Let’s first print out the list of numeric variable and its sample standard deviation.
+pd.DataFrame(data={'variable': numeric_cols, 'unit': np.sqrt(scaler.var_)})
+
+## For example, holding other variables fixed, there is a 41% increase in the odds of having a heart disease for every standard deviation increase in cholesterol (63.470764) since exp(0.345501) = 1.41.
+
+### Okay okay.. so so to come to this conclusion, he took the value of cholesterol on the first DF
+#   11	chol	0.345501
+### And then the value from the second
+#   2	chol	63.470764
+### I'm not too sure of the reasoning behind this..
+```
+
 # Model Optimization 
 ## Gradient Descent
 
@@ -3719,6 +3935,7 @@ import matplotlib.pyplot as plt
 
 ### Create Two Datasets
 ## In the code below, we load the digits dataset, which contains 64 feature variables. Each feature denotes the darkness of a pixel in an 8 by 8 image of a handwritten digit. We can see these features for the first observation:
+
 
 # Load the digit data
 digits = datasets.load_digits()
