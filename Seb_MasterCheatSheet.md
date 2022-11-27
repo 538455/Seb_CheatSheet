@@ -30,6 +30,7 @@
   - [WHERE](#where)
   - [HAVING](#having)
   - [Unique Filtering](#unique-filtering)
+  - [Pull Random Sample](#pull-random-sample)
   - [SQL Functions](#sql-functions)
   - [Group by](#group-by)
   - [SQL Aliases](#sql-aliases)
@@ -42,7 +43,11 @@
     - [Intersect](#intersect)
     - [Except](#except)
   - [Subqueries](#subqueries)
-  - [Get the number of columns](#get-the-number-of-columns)
+  - [Playing with the columns](#playing-with-the-columns)
+    - [Basic function](#basic-function)
+    - [Count Columns](#count-columns)
+    - [List columns](#list-columns)
+    - [List columns in a table that's not in another table](#list-columns-in-a-table-thats-not-in-another-table)
 - [PostgresDB](#postgresdb)
 - [Python](#python)
   - [Strings](#strings)
@@ -408,6 +413,10 @@ SELECT DISTINCT(col1)
 FROM table
 LIMIT 100
 ```
+## Pull Random Sample
+```SQL
+SELECT * FROM table ORDER BY random() LIMIT 200000
+```
 ## SQL Functions
 ```SQL
 SELECT COUNT(*)
@@ -517,9 +526,22 @@ WHERE inner_number_of_values > 100;
 
 --The inner query counts the number of values in column2 - for each group of unique column1 values. Then the outer query uses the inner query's results and counts the number of values where inner_number_of_values are greater than 100. (The result is one number.)
 ```
-## Get the number of columns
+## Playing with the columns
+### Basic function
+```SQL
+SELECT * FROM information_schema.columns WHERE table_name ='table';
+```
+### Count Columns
 ```SQL
 SELECT COUNT(*) as No_of_Column FROM information_schema.columns WHERE table_name ='table'
+```
+### List columns
+```SQL
+SELECT column_name FROM information_schema.columns WHERE table_name ='table';
+```
+### List columns in a table that's not in another table
+```SQL
+
 ```
 
 # PostgresDB
@@ -2616,7 +2638,7 @@ def dataCleaning(df, code=True, tips=False, orientation=True, formatIssues=True,
         print("FORMAT ISSUES")
         print()
         for col in df.columns:
-            if df[col].dtype == 'object' or df[col].dtype == 'int64' or df[col].dtype == 'datetime64':
+            if df[col].dtype == 'object' or df[col].dtype == 'int64' or df[col].dtype == 'float64' or df[col].dtype == 'datetime64':
                 print("df.rename(columns={'" + col + "': ''}, inplace=True)", "#rename column")
                 print("df['" + col + "'] = df['" + col + "'].replace('old_value', 'new_value')")
                 print("df['" + col + "'] = df['" + col + "'].astype('new_type') # new_type can be int64, float64, object, category, datetime64")
