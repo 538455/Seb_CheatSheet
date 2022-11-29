@@ -455,6 +455,11 @@ SELECT col 1
     , col1 || col2 col3 --Merge col 1 and col 2 to become col 3
 FROM table
 ```
+OR
+```SQL      
+select concat(col1, ' ', col2)
+-- select concat_ws(' ', col1, col2)
+```
 ## IF/THEN
 ```SQL
 SELECT col1
