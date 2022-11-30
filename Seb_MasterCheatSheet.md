@@ -37,6 +37,7 @@
   - [Combine two columns in 1](#combine-two-columns-in-1)
   - [IF/THEN](#ifthen)
   - [WITH](#with)
+  - [Operations](#operations)
   - [JOIN](#join)
     - [2x Tables](#2x-tables)
     - [\>2x tables](#2x-tables-1)
@@ -489,6 +490,13 @@ WITH track_info AS
 )
 SELECT * FROM track_info
 WHERE album_name = "Jagged Little Pill";
+```
+## Operations
+```SQL
+SELECT p.name,
+ p.price*p.quantity*(100-d.value)/100  AS total_price
+FROM purchase p
+JOIN discount d ON d.id=p.discount_id;
 ```
 ## JOIN
 ### 2x Tables
