@@ -139,6 +139,15 @@
   - [BeautifulSoup](#beautifulsoup)
     - [Import required librairies](#import-required-librairies-3)
     - [Using Beautiful Soup](#using-beautiful-soup)
+  - [Pickle](#pickle)
+    - [Pickle a list](#pickle-a-list)
+    - [Unpickle a list](#unpickle-a-list)
+    - [Pickle a simple dictionary](#pickle-a-simple-dictionary)
+    - [Unpickle a dictionary −](#unpickle-a-dictionary-)
+  - [Joblib](#joblib)
+    - [A simple example](#a-simple-example)
+    - [Persistence in file objects](#persistence-in-file-objects)
+    - [Compressed joblib pickles](#compressed-joblib-pickles)
   - [Making an API Request](#making-an-api-request)
     - [Function](#function)
     - [Get the Status code](#get-the-status-code)
@@ -162,6 +171,9 @@
     - [With explanation (drop first)](#with-explanation-drop-first)
     - [Simple](#simple-1)
     - [Convert String Categorical into numeric values](#convert-string-categorical-into-numeric-values)
+  - [Using pipelines](#using-pipelines)
+    - [Basic Pipeline](#basic-pipeline)
+    - [Combining Pipelines (demonstration 1)](#combining-pipelines-demonstration-1)
 - [Sampling and dimensionality reduction](#sampling-and-dimensionality-reduction)
   - [Resampling (Class Imbalance)](#resampling-class-imbalance)
     - [1) Can You Collect More Data?](#1-can-you-collect-more-data)
@@ -2498,8 +2510,127 @@ VARIABLE = ""
 soup = BeautifulSoup(VARIABLE, 'lxml')
 ```
 Need further development
+## Pickle
+### Pickle a list
+```python
+import pickle
+mylist = ['a', 'b', 'c', 'd']
+with open('datafile.txt', 'wb') as fh:
+   pickle.dump(mylist, fh)
+```
+In the above code, list – “mylist” contains four elements (‘a’, ‘b’, ‘c’, ‘d’). We open the file in “wb” mode instead of “w” as all the operations are done using bytes in the current working directory. A new file named “datafile.txt” is created, which converts the mylist data in the byte stream.
+
+### Unpickle a list
+```python
+import pickle
+pickle_off = open ("datafile.txt", "rb")
+emp = pickle.load(pickle_off)
+print(emp)
+```
+### Pickle a simple dictionary
+```python
+import pickle
+EmpID = {1:"Zack",2:"53050",3:"IT",4:"38",5:"Flipkart"}
+pickling_on = open("EmpID.pickle","wb")
+pickle.dump(EmpID, pickling_on)
+pickling_on.close()
+```
+### Unpickle a dictionary −
+```python
+import pickle
+pickle_off = open("EmpID.pickle", 'rb')
+EmpID = pickle.load(pickle_off)
+print(EmpID)
+```
+
+## Joblib
+ More information [here](https://machinelearningmastery.com/save-load-machine-learning-models-python-scikit-learn/).
+
+### A simple example
+```python
+#First create a temporary directory:
+from tempfile import mkdtemp
+savedir = mkdtemp()
+import os
+filename = os.path.join(savedir, 'test.joblib')
+
+# Then create an object to be persisted:
+import numpy as np
+to_persist = [('a', [1, 2, 3]), ('b', np.arange(10))]
+
+# which is saved into filename:
+import joblib
+joblib.dump(to_persist, filename)  
+## ['...test.joblib']
+
+# The object can then be reloaded from the file:
+joblib.load(filename)
+## [('a', [1, 2, 3]), ('b', array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))]
+```
+### Persistence in file objects
+Instead of filenames, joblib.dump() and joblib.load() functions also accept file objects:
+```python
+with open(filename, 'wb') as fo:  
+   joblib.dump(to_persist, fo)
+
+with open(filename, 'rb') as fo:  
+   joblib.load(fo)
+## [('a', [1, 2, 3]), ('b', array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))]
+```
+### Compressed joblib pickles
+Setting the compress argument to True in joblib.dump() will allow to save space on disk:
+
+```python
+joblib.dump(to_persist, filename + '.compressed', compress=True)  
+```
+If the filename extension corresponds to one of the supported compression methods, the compressor will be used automatically:
+```python
+joblib.dump(to_persist, filename + '.z')  
+```
+By default, joblib.dump() uses the zlib compression method as it gives the best tradeoff between speed and disk space. The other supported compression methods are ‘gzip’, ‘bz2’, ‘lzma’ and ‘xz’:
+
+```python
+# Dumping in a gzip compressed file using a compress level of 3.
+joblib.dump(to_persist, filename + '.gz', compress=('gzip', 3))  
+## ['...test.joblib.gz']
+joblib.load(filename + '.gz')
+## [('a', [1, 2, 3]), ('b', array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))]
+joblib.dump(to_persist, filename + '.bz2', compress=('bz2', 3))  
+## ['...test.joblib.bz2']
+joblib.load(filename + '.bz2')
+## [('a', [1, 2, 3]), ('b', array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))]
+```
+The compress parameter of the joblib.dump() function also accepts a string corresponding to the name of the compressor used. When using this, the default compression level is used by the compressor:
+
+```python
+joblib.dump(to_persist, filename + '.gz', compress='gzip')  
+# ['...test.joblib.gz']
+```
+Compressor files provided by the python standard library can also be used to compress pickle, e.g gzip.GzipFile, bz2.BZ2File, lzma.LZMAFile:
+
+```python
+# Dumping in a gzip.GzipFile object using a compression level of 3.
+import gzip
+with gzip.GzipFile(filename + '.gz', 'wb', compresslevel=3) as fo:  
+   joblib.dump(to_persist, fo)
+with gzip.GzipFile(filename + '.gz', 'rb') as fo:  
+   joblib.load(fo)
+## [('a', [1, 2, 3]), ('b', array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))]
+```
+If the lz4 package is installed, this compression method is automatically available with the dump function.
+
+```python
+joblib.dump(to_persist, filename + '.lz4')  
+## ['...test.joblib.lz4']
+joblib.load(filename + '.lz4')
+```
+
+
+
+
 ## Making an API Request
 ### Function
+
 I like to contain them in a function. That way, when you loop it makes things easier and you can have all API calls at the same place in your Notebook.
 ```python
 #Import required libraries
@@ -2945,6 +3076,79 @@ df['col'] = le.fit_transform(df['col'])
 # Drop the columns which have been converted to different types
 df.drop(['col', 'col2'],axis=1,inplace=True)
 ```
+## Using pipelines 
+### Basic Pipeline
+
+```python
+from sklearn.pipeline import Pipeline
+
+# list of (name, sklearn transformation class) tuples. Implementing .fit and .transform methods
+# last step must be an estimator.
+pipeline = Pipeline(steps=[('scaling', StandardScaler()),
+                           ('pca', PCA(n_components=3)),
+                           ('classifier', LogisticRegression())])
+pipeline.fit(X_train, y_train)
+
+y_pred = pipeline.predict(X_test)
+acc = accuracy_score(y_test, y_pred)
+print(f'Test set accuracy: {acc}')
+```
+### Combining Pipelines (demonstration 1)
+```python
+# IMPORT PACKAGES
+from sklearn.svm import SVC
+from sklearn.datasets import load_iris
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline, FeatureUnion
+
+from sklearn.decomposition import PCA
+from sklearn.feature_selection import SelectKBest
+
+### We load the data into X,y:
+iris = load_iris()
+X, y = iris["data"], iris["target"]
+
+### Now, we will apply two different feature extraction techniques:
+## PCA
+## SelectKBest
+# This dataset is way too high-dimensional. Better do PCA:
+pca = PCA(n_components=2)
+
+# Maybe some of the original features were good, too?
+selection = SelectKBest(k=3)
+
+### Now, we will combine these ouputs with FeatureUnion:
+# Build an transformer from PCA and Univariate selection:
+combined_features = FeatureUnion([("pca", pca), ("univ_select", selection)])
+
+### We will create an object for classification now:
+# We will initialize the classifier
+svm = SVC(kernel="linear")
+
+### Let's finalize the pipeline and apply grid search to tune the parameters properly:
+
+# create our pipeline from FeatureUnion 
+pipeline = Pipeline([("features", combined_features), ("svm", svm)])
+
+# set up our parameters grid
+param_grid = {"features__pca__n_components": [1, 2, 3],
+                  "features__univ_select__k": [1, 2, 3],
+                  "svm__C":[0.1, 1, 10]}
+
+# create a Grid Search object
+grid_search = GridSearchCV(pipeline, param_grid, verbose=10, refit=True)    
+
+# fit the model and tune parameters
+grid_search.fit(X, y)
+
+### Finally, we can print the best combination of parameters:
+print(grid_search.best_params_)
+
+
+
+```
+
 # Sampling and dimensionality reduction
 
 ## Resampling (Class Imbalance)
@@ -4151,6 +4355,7 @@ pd.DataFrame(data={'variable': numeric_cols, 'unit': np.sqrt(scaler.var_)})
 
 # Model Evaluation
 ## Grid Search
+More information [here](https://medium.datadriveninvestor.com/an-introduction-to-grid-search-ff57adcc0998).
 ```python
 import numpy as np
 import sklearn  # scikit-learn

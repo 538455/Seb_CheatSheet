@@ -169,6 +169,15 @@ def dataCleaning(df, code=True, tips=False, orientation=True, formatIssues=True,
             print("df = df[(df['column'] > lower_bound) & (df['column'] < upper_bound)]")
             print()
 
+def dataExploration(df):
+    """
+    Consolidation of the basic data exploration steps into one function
+    
+    df: your dataframe
+
+    """
+
+
 def stringReverse(string):
     """Reverse a string"""
     
