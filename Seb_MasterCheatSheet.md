@@ -244,6 +244,17 @@
       - [AUC Score](#auc-score)
     - [Lift Curves](#lift-curves)
     - [Log-Loss](#log-loss)
+- [Model Deployment](#model-deployment)
+  - [Flask](#flask)
+  - [AWS](#aws)
+    - [Launching an EC2 Instance](#launching-an-ec2-instance)
+    - [Connecting to the Instance using Anaconda](#connecting-to-the-instance-using-anaconda)
+    - [Using Jupyter \*\*\*BROKEN, fix later](#using-jupyter-broken-fix-later)
+  - [tmux](#tmux)
+    - [Installation](#installation)
+    - [Start tmux](#start-tmux)
+    - [Detach from tmux](#detach-from-tmux)
+    - [Launch the model to AWS](#launch-the-model-to-aws)
 - [Machine Learning - Reinforcement Learning](#machine-learning---reinforcement-learning)
 - [Machine Learning - Semi-Supervised Learning](#machine-learning---semi-supervised-learning)
 - [VSCode](#vscode)
@@ -4833,6 +4844,121 @@ print("Log-loss for linear regression is better: ", log_loss_lr < log_loss_rr)
 
 ## The lower the log-loss, the better the model
 ```
+# Model Deployment
+## Flask
+
+## AWS
+### Launching an EC2 Instance
+- Go to the [EC2 Instances page](https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#Instances:) and click on the Launch Instance button.
+- Set
+  - name
+  - instance type (t2.micro is free tier eligible)
+  - Key Pair
+- Click on the Launch button.
+- Once launched, get your public IP address from the EC2 Instances page.
+- Open Git Bash and ssh into your instance.
+```bash
+ssh -i 'C:/Users/987/.ssh/MyKeyPair.pem' ec2-user@{IP_Address}
+```
+- You will be asked to confirm the authenticity of the key. Type yes and press enter.
+- You may be asked to install some updates, running sudo yum update. Do it if you are asked, pressing y and enter when prompted.
+
+### Connecting to the Instance using Anaconda
+- Open Jupyter Lab -> Terminal window
+- Connect to you AWS instance using same as above
+```bash
+ssh -i 'C:/Users/987/.ssh/MyKeyPair.pem' ec2-user@{IP_Address}
+```
+- Go to this [link](https://www.anaconda.com/products/distribution) and copy the link address for the latest version of Anaconda for Linux.
+- Use the code below to download the Linux installer directly from the instance (update with the link you copied): 
+```bash
+curl -O https://repo.anaconda.com/archive/Anaconda3-2022.10-Linux-x86_64.sh
+```
+- Install Anaconda using the following command (update with the name of the file you downloaded above):
+```bash
+sh Anaconda3-2022.10-Linux-x86_64.sh
+```
+- Read and accept the license agreement. Enter, yes
+- Confirm installation location by pression Enter
+- Once the installation asks: Do you wish the installer to initialize Anaconda3 by running conda init? Select yes, so we don't have to do it afterward.
+- Now, we need to restart the command line so the changes we have made with the installation take effect. Write exit into the terminal and then login again (should be in cache using up arrow)
+```bash
+exit
+```
+
+### Using Jupyter ***BROKEN, fix later
+To access JupyterLab remotely, we need to specify the IP and PORT. We also use the option --no-browser because there is no browser installed on the instance so we don't want to open a new tab with our notebook.
+```bash
+jupyter lab --ip 0.0.0.0 --port 8888 --no-browser
+```
+- Before you launch Jupyter Lab, you need to set up security groups. Go to the [EC2 Instances page](https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#Instances:), open the details of your instance, and click on the Security Groups link (security tab).
+- Edit inbound rules and add a new rule with the following settings:
+  - Type: All traffic
+  - Source: Anywhere IPV4
+
+cb2484ec9581810a46a98e5da4a0e6f11a2983bcf253feb7
+
+## tmux
+### Installation
+```bash
+sudo yum install tmux
+```
+### Start tmux
+```bash
+tmux
+```
+### Detach from tmux
+```bash
+Ctrl + b
+d
+```
+### Launch the model to AWS
+Use the following command to launch the model to AWS. Run this from your local Git Bash.
+```bash
+scp -i 'C:/Users/987/.ssh/MyKeyPair.pem' -r {FilePath} ec2-user@{IP_Address}:/home/ec2-user
+```
+** Don't forget to upload your model file as well!
+** Don't forget to reverse the slashes in the file path if you copied it from Windows Explorer.
+
+Connect back to your instance using ssh and run the following command to launch the model. To have the model running in the background, launch it using tmux.
+```bash
+tmux
+```
+```bash
+python {FileName}.py
+```
+Run ls to see the files in your instance. You should see the file you just uploaded.
+
+Once it is up and running, you can detach from tmux using the following command:
+```bash
+Ctrl + b
+d
+```
+
+This will allow you to disconnect from the instance without stopping the model. To reconnect to the instance, use the following command:
+```bash
+ssh -i 'C:/Users/987/.ssh/MyKeyPair.pem' ec2-user@{IP_Address}
+```
+To reconnect to the model, use the following command:
+```bash
+tmux a
+```
+
+To stop the model, use the following command:
+```bash
+Ctrl + c
+```
+
+To remove the file, use the following command:
+```bash
+rm {FileName}
+```
+To disconnect from the instance, use the following command:
+```bash
+exit
+```
+
+
 # Machine Learning - Reinforcement Learning
 # Machine Learning - Semi-Supervised Learning
 # VSCode
